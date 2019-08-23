@@ -6,6 +6,8 @@ This library provides no business logic, and operates more like an SDK
 ### To Do
 * Literally everything
 * Fix up URL management to resolve references etc
+* Env var configuration (config uniformity too)
+* The rest of the Origin service
 
 # Usage
 You will need your authorizationHeaderToken from Highwinds as well as manage your own accountHashes.

@@ -37,6 +37,7 @@ func New(c *striketracker.Client) *Service {
 		Endpoint: e,
 		client:   c,
 	}
+
 }
 
 // List returns all origins in the given account
