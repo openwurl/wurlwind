@@ -45,14 +45,14 @@ func New(c *striketracker.Client) *Service {
 //
 // Sends AccountHash, UserID, APITokenRequest
 // Receives Authentication
-func (s *Service) Create(accountHash string, userID string, application string) (*models.Authentication, error) {
+func (s *Service) Create(accountHash string, userID string, password string, application string) (*models.Authentication, error) {
 
 	payload := &models.CreateTokenRequest{
 		AccountHash: accountHash,
 		UserID:      userID,
 		APITokenRequest: &models.APITokenRequest{
 			Application: application,
-			Password:    s.client.Identity.Password,
+			Password:    password,
 		},
 	}
 

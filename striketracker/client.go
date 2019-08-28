@@ -53,6 +53,10 @@ func NewClient(config *Configuration) (*Client, error) {
 		return nil, fmt.Errorf("No authorization is defined. You need AuthorizationHeaderToken")
 	}
 
+	if config.ApplicationID == "" {
+		return nil, fmt.Errorf("ApplicationID is required - this is the only way to identify your requests in highwinds logs")
+	}
+
 	// Configure the client from final configuration
 	c := &Client{
 		c:             http.DefaultClient,
@@ -66,63 +70,6 @@ func NewClient(config *Configuration) (*Client, error) {
 	c.Headers = c.GetHeaders()
 	return c, nil
 }
-
-/*
-// NewClient returns a configured client
-func NewClient(config *Config) *Client {
-	c := &Client{
-		c:     http.DefaultClient,
-		Debug: config.Debug,
-		//		Auth: &Authorization{
-		//			authorizationHeaderToken: config.AuthorizationHeaderToken,
-		//		},
-		ApplicationID: config.ApplicationID,
-	}
-	c.Headers = c.GetHeaders()
-	return c
-}
-
-striketracker.NewClient(
-	WithConfig(&striketracker.Config{Debug: false}),
-	WithEnv(),
-
-)
-
-// NewClient returns a configured client
-func NewClient(debug bool, authorizationHeaderToken string, applicationID string) *Client {
-	c := &Client{
-		c:     http.DefaultClient,
-		Debug: debug,
-		Auth: &Authorization{
-			authorizationHeaderToken: authorizationHeaderToken,
-		},
-		ApplicationID: applicationID,
-	}
-
-	c.Headers = c.GetHeaders()
-
-	return c
-}
-
-// NewClientFromConfiguration returns a configured client from the given configuration
-func NewClientFromConfiguration(config *Config) *Client {
-	c := &Client{
-		c:     http.DefaultClient,
-		Debug: config.Debug,
-		Auth: &Authorization{
-			authorizationHeaderToken: config.AuthorizationHeaderToken,
-		},
-		ApplicationID: config.ApplicationID,
-	}
-	c.Headers = c.GetHeaders()
-	return c
-}
-
-// NewClientFromEnv returns a configured client from env vars
-func NewClientFromEnv() *Client {
-	return nil
-}
-*/
 
 // CreateRequest assembles a request with sensitive information
 func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
