@@ -1,4 +1,5 @@
-# WurlWind
+# WurlWind [![License](https://img.shields.io/:license-apache-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Build Status](https://travis-ci.org/openwurl/wurlwind.svg?branch=master)](https://travis-ci.org/openwurl/wurlwind)
+
 An open source GO library for interfacing with Highwinds / Striketracker CDN
 
 This library provides no business logic, and operates more like an SDK
