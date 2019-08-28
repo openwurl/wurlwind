@@ -27,5 +27,6 @@ func (a *AuthEndpoint) formatToken(accountHash string, userID string, token stri
 }
 
 func (a *AuthEndpoint) formatAuth() string {
-	return AuthenticateEndpoint
+	// This is a unique endpoint not following structure
+	return fmt.Sprintf("%s%s", endpoints.URL, AuthenticateEndpoint)
 }

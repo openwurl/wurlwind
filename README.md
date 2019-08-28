@@ -12,7 +12,7 @@ This library provides no business logic, and operates more like an SDK
 # Usage
 You will need your authorizationHeaderToken from Highwinds as well as manage your own accountHashes.
 
-There is a plan to implement username/password based authentication if you do not want to use a permanent API token.
+There is no plan to implement username/password based authentication. While it is supported by the Striketracker API, this library is focused on using a permaent API token.
 
 ### Client
 You must first configure and maintain a client in your application. As of right now this looks like the example below, however it's going to accept EnvVars ultimately for secrets (not implemented yet)
@@ -28,8 +28,6 @@ ToDo:
 * `NewClientFromConfig`
   * config-struct functional driven configuration
   * (ex. `NewClientFromConfig(WithAuthorizationToken(token)))`)
-* `NewClientFromEnv`
-  * env-var driven configuration
 
 
 # Services

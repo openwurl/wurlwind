@@ -1,5 +1,18 @@
 package models
 
+// GrantType defines the authentication mechanism
+type GrantType string
+
+func (g GrantType) String() string {
+	return string(g)
+}
+
+// Available authentication mechanisms
+const (
+	PASSWORD GrantType = "password"
+	REFRESH  GrantType = "refresh_token"
+)
+
 // AccessToken for controlling access to the API
 type AccessToken struct {
 	// Whether or not the token is active
@@ -54,4 +67,12 @@ type CreateTokenRequest struct {
 	AccountHash     string           `json:"account_hash"`
 	UserID          string           `json:"user_id"`
 	APITokenRequest *APITokenRequest `json:"api_token_request"`
+}
+
+// AuthenticationRequest is the payload for authenticating for a token
+type AuthenticationRequest struct {
+	GrantType    string `json:"grant_type"`
+	Username     string `json:"username"`
+	Password     string `json:"password"`
+	RefreshToken string `json:"refresh_token"`
 }

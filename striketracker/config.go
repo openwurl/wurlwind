@@ -10,8 +10,6 @@ type Configuration struct {
 	Debug                    bool   `json:"debug"`
 	AuthorizationHeaderToken string `json:"authorizationHeaderToken"`
 	ApplicationID            string `json:"applicationID" validate:"required"`
-	UserID                   string `json:"userID"`
-	Password                 string `json:"password"`
 }
 
 // Validate validates the configuration is valid
@@ -44,20 +42,6 @@ func WithAuthorizationHeaderToken(token string) Config {
 func WithApplicationID(appID string) Config {
 	return func(c *Configuration) {
 		c.ApplicationID = appID
-	}
-}
-
-// WithUserID adds the UserID (if applicable) on instantiation
-func WithUserID(userID string) Config {
-	return func(c *Configuration) {
-		c.UserID = userID
-	}
-}
-
-// WithPassword adds the Password (if applicable) on instantiation
-func WithPassword(password string) Config {
-	return func(c *Configuration) {
-		c.Password = password
 	}
 }
 

@@ -3,6 +3,7 @@ package striketracker
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -37,23 +38,33 @@ func NewClientWithOptions(opts ...Config) (*Client, error) {
 		return nil, err
 	}
 
-	c := NewClient(options)
+	c, err := NewClient(options)
+	if err != nil {
+		return nil, err
+	}
 
 	return c, nil
 }
 
 // NewClient returns a configured client
-func NewClient(config *Configuration) *Client {
+func NewClient(config *Configuration) (*Client, error) {
+	// Check that authorization values are defined at all
+	if config.AuthorizationHeaderToken == "" {
+		return nil, fmt.Errorf("No authorization is defined. You need AuthorizationHeaderToken")
+	}
 
-	// if AuthorizationHeaderToken not set check for user/pass, if not set check env var
-
+	// Configure the client from final configuration
 	c := &Client{
 		c:             http.DefaultClient,
 		Debug:         config.Debug,
 		ApplicationID: config.ApplicationID,
+		Identity: &identity.Identification{
+			AuthorizationHeaderToken: config.AuthorizationHeaderToken,
+		},
 	}
+	// Set default headers
 	c.Headers = c.GetHeaders()
-	return c
+	return c, nil
 }
 
 /*
@@ -133,8 +144,10 @@ func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) 
 		req.Header.Set(header.Key, header.Value)
 	}
 
-	// Add auth token at this step to support refreshes
-	//req.Header.Set("Authorization", c.Auth.GetBearer())
+	// Add auth token from memory if it exists
+	if c.Identity.AuthorizationHeaderToken != "" {
+		req.Header.Set("Authorization", c.Identity.GetBearer())
+	}
 
 	return req, nil
 }
@@ -151,7 +164,7 @@ func (c *Client) DoRequest(req *http.Request, v interface{}) (*http.Response, er
 	return resp, err
 }
 
-// GetHeaders Generates the minimum requited headers
+// GetHeaders Generates the minimum required headers
 func (c *Client) GetHeaders() []*Header {
 	var headers []*Header
 	appID := &Header{

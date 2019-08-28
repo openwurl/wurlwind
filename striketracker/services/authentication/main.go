@@ -13,7 +13,7 @@ import (
 POST /api/v1/accounts/{account_hash}/users/{user_id}/tokens
 GET /api/v1/accounts/{account_hash}/users/{user_id}/tokens
 DELETE /api/v1/accounts/{account_hash}/users/{user_id}/tokens/{token_id}
-POST /auth/token
+NOT IMPLEMENTING POST /auth/token
 */
 
 const path = "/tokens"
@@ -93,14 +93,4 @@ func (s *Service) List(accountHash string, userID string) (*models.AccessTokenLi
 // Receives status
 func (s *Service) Delete(accountHash string, userID string, token string) error {
 	return nil
-}
-
-// Authenticate against the API or refresh a user token
-//
-// POST /auth/token
-//
-// Sends GrantType, Username (if password), Password (if password), RefreshToken (if refresh)
-// Receives AuthToken
-func (s *Service) Authenticate() {
-
 }
