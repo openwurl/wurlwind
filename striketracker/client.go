@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/openwurl/wurlwind/striketracker/identity"
 )
 
 // Header defines a header to be attached to requests
@@ -13,16 +15,67 @@ type Header struct {
 	Value string
 }
 
-const ()
-
 // Client is the primary wrapper for API interactions
 type Client struct {
-	Debug         bool
-	Auth          *Authorization
+	Debug bool
+	//Auth          *auth.Wrapper
+	Identity      *identity.Identification
 	c             *http.Client
 	ApplicationID string
 	Headers       []*Header
 }
+
+// NewClientWithOptions returns a configured client from functional parameters
+func NewClientWithOptions(opts ...Config) (*Client, error) {
+	options := &Configuration{}
+	for _, opt := range opts {
+		opt(options)
+	}
+
+	err := options.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	c := NewClient(options)
+
+	return c, nil
+}
+
+// NewClient returns a configured client
+func NewClient(config *Configuration) *Client {
+
+	// if AuthorizationHeaderToken not set check for user/pass, if not set check env var
+
+	c := &Client{
+		c:             http.DefaultClient,
+		Debug:         config.Debug,
+		ApplicationID: config.ApplicationID,
+	}
+	c.Headers = c.GetHeaders()
+	return c
+}
+
+/*
+// NewClient returns a configured client
+func NewClient(config *Config) *Client {
+	c := &Client{
+		c:     http.DefaultClient,
+		Debug: config.Debug,
+		//		Auth: &Authorization{
+		//			authorizationHeaderToken: config.AuthorizationHeaderToken,
+		//		},
+		ApplicationID: config.ApplicationID,
+	}
+	c.Headers = c.GetHeaders()
+	return c
+}
+
+striketracker.NewClient(
+	WithConfig(&striketracker.Config{Debug: false}),
+	WithEnv(),
+
+)
 
 // NewClient returns a configured client
 func NewClient(debug bool, authorizationHeaderToken string, applicationID string) *Client {
@@ -58,6 +111,7 @@ func NewClientFromConfiguration(config *Config) *Client {
 func NewClientFromEnv() *Client {
 	return nil
 }
+*/
 
 // CreateRequest assembles a request with sensitive information
 func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
@@ -80,7 +134,7 @@ func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) 
 	}
 
 	// Add auth token at this step to support refreshes
-	req.Header.Set("Authorization", c.Auth.GetBearer())
+	//req.Header.Set("Authorization", c.Auth.GetBearer())
 
 	return req, nil
 }

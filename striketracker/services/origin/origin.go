@@ -1,11 +1,10 @@
 package origin
 
 import (
-	"fmt"
-
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
+	"github.com/openwurl/wurlwind/striketracker/services"
 )
 
 /*
@@ -58,9 +57,8 @@ func (s *Service) List(accountHash string) (*models.OriginList, error) {
 		return nil, err
 	}
 
-	// should validate the resp here, but just for now
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Error: %d", resp.StatusCode)
+	if err = services.ValidateResponse(resp); err != nil {
+		return nil, err
 	}
 
 	return ol, nil

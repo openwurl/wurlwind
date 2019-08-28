@@ -21,6 +21,7 @@ const (
 	BILLINGREGIONS = "/billingRegions"
 	IPS            = "/ips"
 	POPS           = "/pops"
+	AUTH           = "/auth"
 )
 
 // BasePath wraps the various possible base paths
@@ -47,6 +48,7 @@ const (
 	Services       BasePath = ACCOUNTS
 	Sessions       BasePath = ACCOUNTS
 	Users          BasePath = ACCOUNTS
+	Auth           BasePath = AUTH
 )
 
 /*
