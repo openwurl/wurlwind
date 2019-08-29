@@ -8,7 +8,7 @@ import (
 // Configuration provides a service configuration for the client
 type Configuration struct {
 	Debug                    bool   `json:"debug"`
-	AuthorizationHeaderToken string `json:"authorizationHeaderToken"`
+	AuthorizationHeaderToken string `json:"authorizationHeaderToken" validate:"required"`
 	ApplicationID            string `json:"applicationID" validate:"required"`
 }
 

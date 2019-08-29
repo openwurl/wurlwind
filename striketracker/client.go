@@ -91,6 +91,10 @@ func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) 
 		req.Header.Set(header.Key, header.Value)
 	}
 
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
 	// Add auth token from memory if it exists
 	if c.Identity.AuthorizationHeaderToken != "" {
 		req.Header.Set("Authorization", c.Identity.GetBearer())

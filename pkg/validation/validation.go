@@ -10,6 +10,7 @@ import (
 var (
 	DomainRegExp = regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z
 		]{2,3})$`)
+	OriginPathRexExp = regexp.MustCompile(`^([/])*'`)
 )
 
 // Validator is a custom validator
@@ -33,9 +34,14 @@ func NewValidator(v *validator.Validate) *Validator {
 
 // RegisterCustom registers all custom validators for use.
 func (cv *Validator) RegisterCustom() {
-	err := cv.validator.RegisterValidation("domain", isDomain)
-	if err != nil {
-		panic(err)
+	derr := cv.validator.RegisterValidation("domain", isDomain)
+	if derr != nil {
+		panic(derr)
+	}
+
+	perr := cv.validator.RegisterValidation("path", validOriginPath)
+	if perr != nil {
+		panic(perr)
 	}
 }
 

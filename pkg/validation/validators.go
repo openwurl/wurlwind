@@ -7,3 +7,10 @@ func isDomain(fl validator.FieldLevel) bool {
 	val := fl.Field().String()
 	return DomainRegExp.MatchString(val)
 }
+
+// validOriginPath validates that the origin path is acceptable
+// Requires preceeding slash
+func validOriginPath(fl validator.FieldLevel) bool {
+	val := fl.Field().String()
+	return OriginPathRexExp.MatchString(val)
+}

@@ -16,5 +16,5 @@ func (i *Identification) SetToken(token string) {
 
 // GetBearer returns the formatted bearer token
 func (i *Identification) GetBearer() string {
-	return fmt.Sprintf("Bearer: %s", i.AuthorizationHeaderToken)
+	return fmt.Sprintf("Bearer %s", i.AuthorizationHeaderToken)
 }
