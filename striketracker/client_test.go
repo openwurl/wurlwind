@@ -56,7 +56,7 @@ func TestNewClient(t *testing.T) {
 		t.Errorf("Expected AuthorizationHeaderToken to be %s but found %s", TestToken, c.Identity.AuthorizationHeaderToken)
 	}
 
-	expectedBearer := fmt.Sprintf("Bearer: %s", TestToken)
+	expectedBearer := fmt.Sprintf("Bearer %s", TestToken)
 	foundBearer := c.Identity.GetBearer()
 	if foundBearer != expectedBearer {
 		t.Errorf("Expected client to produce bearer [%s] but got [%s]", expectedBearer, foundBearer)
