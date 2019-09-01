@@ -21,25 +21,33 @@ func (c *Configuration) Validate() error {
 	return nil
 }
 
-// Config is a functional API for configuring the client
-type Config func(*Configuration)
+// Option is a functional API for configuring the client.
+// https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html
+type Option func(*Configuration)
+
+// Option is a method to set Configuration fields with a functional interface.
+func (c *Configuration) Option(options ...Option) {
+	for _, config := range options {
+		config(c)
+	}
+}
 
 // WithDebug adds debug on instantiation
-func WithDebug(debug bool) Config {
+func WithDebug(debug bool) Option {
 	return func(c *Configuration) {
 		c.Debug = debug
 	}
 }
 
 // WithAuthorizationHeaderToken adds an auth token on instantiation
-func WithAuthorizationHeaderToken(token string) Config {
+func WithAuthorizationHeaderToken(token string) Option {
 	return func(c *Configuration) {
 		c.AuthorizationHeaderToken = token
 	}
 }
 
 // WithApplicationID adds the ApplicationID on instantiation
-func WithApplicationID(appID string) Config {
+func WithApplicationID(appID string) Option {
 	return func(c *Configuration) {
 		c.ApplicationID = appID
 	}

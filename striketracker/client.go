@@ -27,7 +27,7 @@ type Client struct {
 }
 
 // NewClientWithOptions returns a configured client from functional parameters
-func NewClientWithOptions(opts ...Config) (*Client, error) {
+func NewClientWithOptions(opts ...Option) (*Client, error) {
 	options := &Configuration{}
 	for _, opt := range opts {
 		opt(options)
