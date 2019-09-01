@@ -9,7 +9,7 @@ const (
 	ConfigTestID    = "TestApplication"
 )
 
-func TestWithDebug(t *testing.T) {
+func TestFunctionalApi(t *testing.T) {
 	config := Configuration{}
 	config.Option(WithDebug(true), WithApplicationID(ConfigTestID), WithAuthorizationHeaderToken(ConfigTestToken))
 	if !config.Debug {
