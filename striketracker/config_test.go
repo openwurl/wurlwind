@@ -2,6 +2,8 @@ package striketracker
 
 import (
 	"testing"
+
+	validator "gopkg.in/go-playground/validator.v9"
 )
 
 const (
@@ -60,5 +62,26 @@ func TestValidateDefaults(t *testing.T) {
 
 	if err == nil {
 		t.Errorf("Expected configuration to not be valid, %s", err)
+	}
+}
+
+func TestValidateMissingAuthToken(t *testing.T) {
+	config, _ := NewConfiguration(WithApplicationID(ConfigTestID))
+	err := config.Validate()
+
+	if err == nil {
+		t.Errorf("Expected config to not be valid")
+	}
+
+	// TODO extract the error to give more context
+	if _, ok := err.(*validator.InvalidValidationError); ok {
+		t.Errorf("Invalid Validation Error")
+	}
+
+	// TODO extract more context than just err.Field()
+	for _, err := range err.(validator.ValidationErrors) {
+		if err.Field() != "AuthorizationHeaderToken" {
+			t.Errorf("Unexpected validation error on field %s", err.Field())
+		}
 	}
 }
