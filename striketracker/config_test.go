@@ -16,7 +16,7 @@ func TestDefaults(t *testing.T) {
 	config, err := NewConfiguration()
 
 	if err != nil {
-		t.Errorf("Did not expect error")
+		t.Errorf("Did not expect error %v", err)
 	}
 
 	if config.Debug {
@@ -24,11 +24,11 @@ func TestDefaults(t *testing.T) {
 	}
 
 	if config.ApplicationID != "" {
-		t.Errorf("Expected App Id to be empty")
+		t.Errorf("Expected App Id to be empty, but was %v", config.ApplicationID)
 	}
 
 	if config.AuthorizationHeaderToken != "" {
-		t.Errorf("Expected token to be empty")
+		t.Errorf("Expected token to be empty, but was %v", config.AuthorizationHeaderToken)
 	}
 }
 
@@ -40,7 +40,7 @@ func TestSettingOptions(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("Did not expect error")
+		t.Errorf("Did not expect error %v", err)
 	}
 
 	if !config.Debug {
@@ -48,11 +48,11 @@ func TestSettingOptions(t *testing.T) {
 	}
 
 	if config.ApplicationID != ConfigTestID {
-		t.Errorf("Expected ApplicationId to be %s", ConfigTestID)
+		t.Errorf("Expected ApplicationId to be %v, but was %v", ConfigTestID, config.ApplicationID)
 	}
 
 	if config.AuthorizationHeaderToken != ConfigTestToken {
-		t.Errorf("Expected %s", ConfigTestToken)
+		t.Errorf("Expected AuthorizationHeaderToken to be %v, but was %v", ConfigTestToken, config.AuthorizationHeaderToken)
 	}
 }
 
@@ -61,7 +61,7 @@ func TestValidateDefaults(t *testing.T) {
 	err := config.Validate()
 
 	if err == nil {
-		t.Errorf("Expected configuration to not be valid, %s", err)
+		t.Errorf("Expected configuration to not be valid, %v", err)
 	}
 }
 
