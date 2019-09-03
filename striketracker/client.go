@@ -26,8 +26,23 @@ type Client struct {
 	Headers       []*Header
 }
 
+// NewClientFromConfiguration will return a client with the provided configuration
+func NewClientFromConfiguration(config *Configuration) (*Client, error) {
+	err := config.Validate()
+	if err != nil {
+		return nil, err
+	}
+
+	client, err := NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
 // NewClientWithOptions returns a configured client from functional parameters
-func NewClientWithOptions(opts ...Config) (*Client, error) {
+func NewClientWithOptions(opts ...Option) (*Client, error) {
 	options := &Configuration{}
 	for _, opt := range opts {
 		opt(options)

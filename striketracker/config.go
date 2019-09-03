@@ -12,6 +12,17 @@ type Configuration struct {
 	ApplicationID            string `json:"applicationID" validate:"required"`
 }
 
+// NewConfiguration creates a new Configuration with the provided options.
+func NewConfiguration(options ...func(*Configuration)) (*Configuration, error) {
+	config := Configuration{}
+
+	for _, option := range options {
+		option(&config)
+	}
+
+	return &config, nil
+}
+
 // Validate validates the configuration is valid
 func (c *Configuration) Validate() error {
 	v := validate.NewValidator(validator.New())
@@ -21,25 +32,27 @@ func (c *Configuration) Validate() error {
 	return nil
 }
 
-// Config is a functional API for configuring the client
-type Config func(*Configuration)
+// Option is a functional API for configuring the client.
+// https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
+// https://commandcenter.blogspot.com/2014/01/self-referential-functions-and-design.html
+type Option func(*Configuration)
 
 // WithDebug adds debug on instantiation
-func WithDebug(debug bool) Config {
+func WithDebug(debug bool) Option {
 	return func(c *Configuration) {
 		c.Debug = debug
 	}
 }
 
 // WithAuthorizationHeaderToken adds an auth token on instantiation
-func WithAuthorizationHeaderToken(token string) Config {
+func WithAuthorizationHeaderToken(token string) Option {
 	return func(c *Configuration) {
 		c.AuthorizationHeaderToken = token
 	}
 }
 
 // WithApplicationID adds the ApplicationID on instantiation
-func WithApplicationID(appID string) Config {
+func WithApplicationID(appID string) Option {
 	return func(c *Configuration) {
 		c.ApplicationID = appID
 	}
