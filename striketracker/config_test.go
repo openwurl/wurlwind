@@ -31,7 +31,11 @@ func TestDefaults(t *testing.T) {
 }
 
 func TestSettingOptions(t *testing.T) {
-	config, err := NewConfiguration(WithDebug(true), WithApplicationID(ConfigTestID), WithAuthorizationHeaderToken(ConfigTestToken))
+	config, err := NewConfiguration(
+		WithDebug(true),
+		WithApplicationID(ConfigTestID),
+		WithAuthorizationHeaderToken(ConfigTestToken),
+	)
 
 	if err != nil {
 		t.Errorf("Did not expect error")
