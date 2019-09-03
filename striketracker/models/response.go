@@ -4,8 +4,8 @@ import "fmt"
 
 // Response is the baseline response from the Striketracker API
 type Response struct {
-	Error string `json:"error"`
-	Code  int    `json:"code"`
+	Error string `json:"error,omitempty"`
+	Code  int    `json:"code,omitempty"`
 }
 
 // Err returns the embedded error if it exists

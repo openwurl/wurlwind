@@ -1,6 +1,8 @@
 package origin
 
 import (
+	"fmt"
+
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -80,7 +82,33 @@ func (s *Service) Create(accountHash string, origin *models.Origin) (*models.Ori
 //
 // Receives Origin
 func (s *Service) Get(accountHash string, originID string) (*models.Origin, error) {
-	return nil, nil
+
+	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), originID)
+	req, err := s.client.CreateRequest(striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	origin := &models.Origin{}
+
+	resp, err := s.client.DoRequest(req, origin)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		// This is difficult to make more generic and needs copied since
+		// Response is inherited and not first class in the struct
+		if respErr := origin.Err(err); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return origin, nil
 }
 
 // Delete an origin
