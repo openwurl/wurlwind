@@ -16,10 +16,11 @@ AUTHORIZATIONHEADERKEY?=
 .PHONY: test
 
 test: ## Runs basic go test
-	go test -v ./... --cover --coverprofile=wurlwind.out
+	go test -v ./... --cover --coverprofile=wurlwind.out -short
 
 cover: ## Generate coverage report
 	go tool cover --html=wurlwind.out
 
 integration: ## Perform integration tests
-	@echo "not implemented ${AUTHORIZATIONHEADERKEY}"
+	go test -v ./... -run Integration
+	#@echo "not implemented ${AUTHORIZATIONHEADERKEY}"
