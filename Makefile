@@ -14,7 +14,7 @@ APPLICATIONID?=
 ###      TARGETS      ###
 #########################
 
-.PHONY: test cover integration
+.PHONY: test cover unit integration
 
 test: ## Runs basic go test
 	go test -v ./... --cover --coverprofile=wurlwind.out -short
