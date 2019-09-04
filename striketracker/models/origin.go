@@ -9,6 +9,7 @@ PUT /api/v1/accounts/{account_hash}/origins/{origin_id} - update origin
 */
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/openwurl/wurlwind/pkg/validation"
 
 	validator "gopkg.in/go-playground/validator.v9"
@@ -53,7 +54,9 @@ type Origin struct {
 func (o *Origin) Validate() error {
 	v := validation.NewValidator(validator.New())
 	if err := v.Validate(o); err != nil {
+		spew.Dump(o)
 		return err
 	}
+
 	return nil
 }

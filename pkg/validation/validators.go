@@ -12,5 +12,9 @@ func isDomain(fl validator.FieldLevel) bool {
 // Requires preceeding slash
 func validOriginPath(fl validator.FieldLevel) bool {
 	val := fl.Field().String()
+	// Not required
+	if val == "" {
+		return true
+	}
 	return OriginPathRexExp.MatchString(val)
 }

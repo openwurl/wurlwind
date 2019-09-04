@@ -126,7 +126,9 @@ func (c *Client) DoRequest(req *http.Request, v interface{}) (*http.Response, er
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(v)
+	if v != nil {
+		err = json.NewDecoder(resp.Body).Decode(v)
+	}
 	return resp, err
 }
 

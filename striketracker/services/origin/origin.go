@@ -3,6 +3,7 @@ package origin
 import (
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -116,6 +117,24 @@ func (s *Service) Get(accountHash string, originID string) (*models.Origin, erro
 // DELETE /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
 func (s *Service) Delete(accountHash string, originID string) error {
+
+	// Construct endpoint with originID
+	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), originID)
+	req, err := s.client.CreateRequest(striketracker.DELETE, endpoint, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := s.client.DoRequest(req, nil)
+	if err != nil {
+		return err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		fmt.Println("validating")
+		return err
+	}
+
 	return nil
 }
 
@@ -126,7 +145,36 @@ func (s *Service) Delete(accountHash string, originID string) error {
 // Sends Origin
 // Receives Origin
 func (s *Service) Update(accountHash string, origin *models.Origin) (*models.Origin, error) {
-	return nil, nil
+	// Validate incoming origin payload
+	if err := origin.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Construct endpoint with originID
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), origin.ID)
+	spew.Dump(endpoint)
+
+	req, err := s.client.CreateRequest(striketracker.PUT, endpoint, origin)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, origin)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := origin.Err(err); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return origin, nil
 }
 
 // List returns all origins in the given account
