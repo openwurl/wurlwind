@@ -8,12 +8,13 @@
 SHELL=/bin/bash -e -o pipefail
 
 AUTHORIZATIONHEADERKEY?=
+APPLICATIONID?=
 
 #########################
 ###      TARGETS      ###
 #########################
 
-.PHONY: test
+.PHONY: test cover integration
 
 test: ## Runs basic go test
 	go test -v ./... --cover --coverprofile=wurlwind.out -short
@@ -23,4 +24,3 @@ cover: ## Generate coverage report
 
 integration: ## Perform integration tests
 	go test -v ./... -run Integration
-	#@echo "not implemented ${AUTHORIZATIONHEADERKEY}"
