@@ -3,7 +3,6 @@ package origin
 import (
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -152,7 +151,6 @@ func (s *Service) Update(accountHash string, origin *models.Origin) (*models.Ori
 
 	// Construct endpoint with originID
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), origin.ID)
-	spew.Dump(endpoint)
 
 	req, err := s.client.CreateRequest(striketracker.PUT, endpoint, origin)
 	if err != nil {

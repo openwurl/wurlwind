@@ -7,6 +7,8 @@
 #looking back but also reading your emails.
 SHELL=/bin/bash -e -o pipefail
 
+AUTHORIZATIONHEADERKEY?=
+
 #########################
 ###      TARGETS      ###
 #########################
@@ -18,3 +20,6 @@ test: ## Runs basic go test
 
 cover: ## Generate coverage report
 	go tool cover --html=wurlwind.out
+
+integration: ## Perform integration tests
+	@echo "not implemented ${AUTHORIZATIONHEADERKEY}"
