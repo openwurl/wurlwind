@@ -1,9 +1,12 @@
 package certificates
 
 import (
+	"context"
+
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
+	"github.com/openwurl/wurlwind/striketracker/services"
 )
 
 /*
@@ -42,8 +45,24 @@ func New(c *striketracker.Client) *Service {
 // GET /api/v1/accounts/{account_hash}/certificates
 //
 // Receives CertificateResponse
-func (s *Service) List(accountHash string) (*models.CertificateResponse, error) {
-	return nil, nil
+func (s *Service) List(ctx context.Context, accountHash string) (*models.CertificateResponse, error) {
+	cl := &models.CertificateResponse{}
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, s.Endpoint.Format(accountHash), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, cl)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		return nil, err
+	}
+
+	return cl, nil
 }
 
 // Get a certificate
@@ -51,7 +70,7 @@ func (s *Service) List(accountHash string) (*models.CertificateResponse, error) 
 // GET /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
 // Receives Certificate
-func (s *Service) Get(accountHash string, certificateID string) (*models.Certificate, error) {
+func (s *Service) Get(ctx context.Context, accountHash string, certificateID string) (*models.Certificate, error) {
 	return nil, nil
 }
 
@@ -60,7 +79,7 @@ func (s *Service) Get(accountHash string, certificateID string) (*models.Certifi
 // GET /api/v1/accounts/{account_hash}/certificates/{certificate_id}/hosts
 //
 // Receives CertificateHosts
-func (s *Service) Hosts(accountHash string, certificateID string) (*models.CertificateHosts, error) {
+func (s *Service) Hosts(ctx context.Context, accountHash string, certificateID string) (*models.CertificateHosts, error) {
 	return nil, nil
 }
 
@@ -70,7 +89,7 @@ func (s *Service) Hosts(accountHash string, certificateID string) (*models.Certi
 //
 // Sends Certificate
 // Receives Certificate
-func (s *Service) Upload(accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
+func (s *Service) Upload(ctx context.Context, accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
 	return nil, nil
 }
 
@@ -79,7 +98,7 @@ func (s *Service) Upload(accountHash string, certificate *models.Certificate) (*
 // DELETE /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
 // Pass in a models.Certificate with the ID set
-func (s *Service) Delete(accountHash string, certificate *models.Certificate) error {
+func (s *Service) Delete(ctx context.Context, accountHash string, certificate *models.Certificate) error {
 	return nil
 }
 
@@ -89,6 +108,6 @@ func (s *Service) Delete(accountHash string, certificate *models.Certificate) er
 //
 // Sends Certificate
 // Receives Certificate
-func (s *Service) Update(accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
+func (s *Service) Update(ctx context.Context, accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
 	return nil, nil
 }

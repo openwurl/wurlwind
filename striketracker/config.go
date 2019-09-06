@@ -10,6 +10,7 @@ type Configuration struct {
 	Debug                    bool   `json:"debug"`
 	AuthorizationHeaderToken string `json:"authorizationHeaderToken" validate:"required"`
 	ApplicationID            string `json:"applicationID" validate:"required"`
+	Timeout                  int    `json:"timeout"`
 }
 
 // NewConfiguration creates a new Configuration with the provided options.
@@ -55,6 +56,14 @@ func WithAuthorizationHeaderToken(token string) Option {
 func WithApplicationID(appID string) Option {
 	return func(c *Configuration) {
 		c.ApplicationID = appID
+	}
+}
+
+// WithRequestTimeout adds a timeout for outgoing requests
+// Default is 10s
+func WithRequestTimeout(timeout int) Option {
+	return func(c *Configuration) {
+		c.Timeout = timeout
 	}
 }
 

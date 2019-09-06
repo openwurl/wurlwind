@@ -2,10 +2,12 @@ package striketracker
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/openwurl/wurlwind/striketracker/identity"
 )
@@ -21,7 +23,7 @@ type Client struct {
 	Debug bool
 	//Auth          *auth.Wrapper
 	Identity      *identity.Identification
-	c             *http.Client
+	c             *http.Client // TODO don't use DefaultClient and allow injectable
 	ApplicationID string
 	Headers       []*Header
 }
@@ -81,12 +83,23 @@ func NewClient(config *Configuration) (*Client, error) {
 			AuthorizationHeaderToken: config.AuthorizationHeaderToken,
 		},
 	}
+
+	// TODO eventually instantiate a custom client but not ready for that yet
+
+	// Configure timeout on default client
+	if config.Timeout == 0 {
+		c.c.Timeout = time.Second * 10
+	} else {
+		c.c.Timeout = time.Second * time.Duration(config.Timeout)
+	}
+
 	// Set default headers
 	c.Headers = c.GetHeaders()
 	return c, nil
 }
 
 // CreateRequest assembles a request with sensitive information
+// TODO: Deprecate in favor of NewRequestContext
 func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
 	var buf io.ReadWriter
 	if body != nil {
@@ -101,6 +114,40 @@ func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) 
 	if err != nil {
 		return nil, err
 	}
+
+	for _, header := range c.Headers {
+		req.Header.Set(header.Key, header.Value)
+	}
+
+	if body != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
+
+	// Add auth token from memory if it exists
+	if c.Identity.AuthorizationHeaderToken != "" {
+		req.Header.Set("Authorization", c.Identity.GetBearer())
+	}
+
+	return req, nil
+}
+
+// NewRequestContext assembles a request with sensitive information and context
+func (c *Client) NewRequestContext(ctx context.Context, method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
+	// Attach body if applicable
+	var buf io.ReadWriter
+	if body != nil {
+		buf = new(bytes.Buffer)
+		err := json.NewEncoder(buf).Encode(body)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequest(method.String(), URL, buf)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
 
 	for _, header := range c.Headers {
 		req.Header.Set(header.Key, header.Value)
