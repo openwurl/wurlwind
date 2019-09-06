@@ -3,6 +3,8 @@
 package authentication
 
 import (
+	"context"
+
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -45,7 +47,7 @@ func New(c *striketracker.Client) *Service {
 //
 // Sends AccountHash, UserID, APITokenRequest
 // Receives Authentication
-func (s *Service) Create(accountHash string, userID string, password string, application string) (*models.Authentication, error) {
+func (s *Service) Create(ctx context.Context, accountHash string, userID string, password string, application string) (*models.Authentication, error) {
 
 	payload := &models.CreateTokenRequest{
 		AccountHash: accountHash,
@@ -58,7 +60,7 @@ func (s *Service) Create(accountHash string, userID string, password string, app
 
 	answer := &models.Authentication{}
 
-	req, err := s.client.CreateRequest(striketracker.POST, s.Endpoint.formatUser(accountHash, userID), payload)
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, s.Endpoint.formatUser(accountHash, userID), payload)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +83,7 @@ func (s *Service) Create(accountHash string, userID string, password string, app
 //
 // Sends AccountHash, UserID
 // Receives AccessTokenList
-func (s *Service) List(accountHash string, userID string) (*models.AccessTokenList, error) {
+func (s *Service) List(ctx context.Context, accountHash string, userID string) (*models.AccessTokenList, error) {
 	return nil, nil
 }
 
@@ -91,6 +93,6 @@ func (s *Service) List(accountHash string, userID string) (*models.AccessTokenLi
 //
 // Sends AccountHash, UserID, TokenID
 // Receives status
-func (s *Service) Delete(accountHash string, userID string, token string) error {
+func (s *Service) Delete(ctx context.Context, accountHash string, userID string, token string) error {
 	return nil
 }
