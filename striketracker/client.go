@@ -98,39 +98,6 @@ func NewClient(config *Configuration) (*Client, error) {
 	return c, nil
 }
 
-// CreateRequest assembles a request with sensitive information
-// TODO: Deprecate in favor of NewRequestContext
-func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
-	var buf io.ReadWriter
-	if body != nil {
-		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req, err := http.NewRequest(method.String(), URL, buf)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, header := range c.Headers {
-		req.Header.Set(header.Key, header.Value)
-	}
-
-	if body != nil {
-		req.Header.Set("Content-Type", "application/json")
-	}
-
-	// Add auth token from memory if it exists
-	if c.Identity.AuthorizationHeaderToken != "" {
-		req.Header.Set("Authorization", c.Identity.GetBearer())
-	}
-
-	return req, nil
-}
-
 // NewRequestContext assembles a request with sensitive information and context
 func (c *Client) NewRequestContext(ctx context.Context, method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
 	// Attach body if applicable
