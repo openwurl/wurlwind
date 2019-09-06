@@ -38,7 +38,6 @@ func New(c *striketracker.Client) *Service {
 		Endpoint: e,
 		client:   c,
 	}
-
 }
 
 // Create a new origin
@@ -81,9 +80,9 @@ func (s *Service) Create(accountHash string, origin *models.Origin) (*models.Ori
 // GET /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
 // Receives Origin
-func (s *Service) Get(accountHash string, originID string) (*models.Origin, error) {
+func (s *Service) Get(accountHash string, originID int) (*models.Origin, error) {
 
-	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), originID)
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
 	req, err := s.client.CreateRequest(striketracker.GET, endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -115,10 +114,10 @@ func (s *Service) Get(accountHash string, originID string) (*models.Origin, erro
 //
 // DELETE /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
-func (s *Service) Delete(accountHash string, originID string) error {
+func (s *Service) Delete(accountHash string, originID int) error {
 
 	// Construct endpoint with originID
-	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), originID)
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
 	req, err := s.client.CreateRequest(striketracker.DELETE, endpoint, nil)
 	if err != nil {
 		return err

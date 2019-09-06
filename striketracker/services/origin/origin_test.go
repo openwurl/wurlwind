@@ -1,7 +1,6 @@
 package origin
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -144,7 +143,7 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 
 			// Get
 			t.Logf("Get %s", tt.name)
-			receivedResponse, err := s.Get(accountHash, fmt.Sprintf("%d", updatedResponse.ID))
+			receivedResponse, err := s.Get(accountHash, updatedResponse.ID)
 			if err != nil {
 				t.Fatalf("Expected integration origin but received error: %v", err)
 			}
@@ -155,7 +154,7 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 
 			// Delete
 			t.Logf("Delete %s", tt.name)
-			err = s.Delete(accountHash, fmt.Sprintf("%d", updatedResponse.ID))
+			err = s.Delete(accountHash, updatedResponse.ID)
 			if err != nil {
 				t.Fatalf("Expected deletion of integration origin but received error: %v", err)
 			}
@@ -163,45 +162,3 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 	}
 
 }
-
-// TestCleanupIntegration cleans up the integration account in case of errors
-//func TestCleanupIntegration(t *testing.T) {
-//	t.Log("Not implemented")
-//}
-
-/*
-func TestGetIntegration(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping integration test")
-	}
-
-	s, accountHash, err := setup()
-	if err != nil {
-		t.Fatalf("Expected client to be configured and account hash to be found but received error: %v", err)
-	}
-
-	var tests = []struct {
-		name          string
-		originID      string
-		shouldSucceed bool
-	}{
-		{"Test should fail", "123456", false},
-		{"Test get [Integration Test Origin For Get]", "235473", true},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			thisOrigin, err := s.Get(accountHash, tt.originID)
-			if tt.shouldSucceed {
-				if err != nil {
-					t.Fatalf("Expected to find origin with ID %s, but got error: %v", tt.originID, err)
-				}
-			} else {
-				if err == nil {
-					t.Fatalf("Expected to not find origin with ID %s, but received: %v", tt.originID, thisOrigin)
-				}
-			}
-		})
-	}
-}
-*/
