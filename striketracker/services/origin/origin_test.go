@@ -1,8 +1,10 @@
 package origin
 
 import (
+	"context"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/openwurl/wurlwind/pkg/integration"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -79,7 +81,13 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create
 			t.Logf("Create %s", tt.name)
-			createResponse, err := s.Create(accountHash, tt.create)
+
+			// test with timeout context
+			ctx := context.Background()
+			ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+			defer cancel()
+
+			createResponse, err := s.Create(ctx, accountHash, tt.create)
 			if err != nil {
 				t.Fatalf("Expected creation of integration origin but received error: %v", err)
 			}
@@ -118,7 +126,7 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 			t.Logf("Update %s", tt.name)
 			update := *tt.update
 			update.ID = createResponse.ID
-			updatedResponse, err := s.Update(accountHash, &update)
+			updatedResponse, err := s.Update(ctx, accountHash, &update)
 			if err != nil {
 				t.Fatalf("Expected update of integration origin but received error: %v", err)
 			}
@@ -143,7 +151,7 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 
 			// Get
 			t.Logf("Get %s", tt.name)
-			receivedResponse, err := s.Get(accountHash, updatedResponse.ID)
+			receivedResponse, err := s.Get(ctx, accountHash, updatedResponse.ID)
 			if err != nil {
 				t.Fatalf("Expected integration origin but received error: %v", err)
 			}
@@ -154,7 +162,7 @@ func TestDestructiveSuiteIntegration(t *testing.T) {
 
 			// Delete
 			t.Logf("Delete %s", tt.name)
-			err = s.Delete(accountHash, updatedResponse.ID)
+			err = s.Delete(ctx, accountHash, updatedResponse.ID)
 			if err != nil {
 				t.Fatalf("Expected deletion of integration origin but received error: %v", err)
 			}

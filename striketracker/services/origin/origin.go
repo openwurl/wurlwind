@@ -1,6 +1,7 @@
 package origin
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/openwurl/wurlwind/striketracker"
@@ -46,13 +47,13 @@ func New(c *striketracker.Client) *Service {
 //
 // Sends Origin
 // Receives Origin
-func (s *Service) Create(accountHash string, origin *models.Origin) (*models.Origin, error) {
+func (s *Service) Create(ctx context.Context, accountHash string, origin *models.Origin) (*models.Origin, error) {
 
 	if err := origin.Validate(); err != nil {
 		return nil, err
 	}
 
-	req, err := s.client.CreateRequest(striketracker.POST, s.Endpoint.Format(accountHash), origin)
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, s.Endpoint.Format(accountHash), origin)
 	if err != nil {
 		return nil, err
 	}
@@ -80,10 +81,10 @@ func (s *Service) Create(accountHash string, origin *models.Origin) (*models.Ori
 // GET /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
 // Receives Origin
-func (s *Service) Get(accountHash string, originID int) (*models.Origin, error) {
+func (s *Service) Get(ctx context.Context, accountHash string, originID int) (*models.Origin, error) {
 
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
-	req, err := s.client.CreateRequest(striketracker.GET, endpoint, nil)
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +115,11 @@ func (s *Service) Get(accountHash string, originID int) (*models.Origin, error) 
 //
 // DELETE /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
-func (s *Service) Delete(accountHash string, originID int) error {
+func (s *Service) Delete(ctx context.Context, accountHash string, originID int) error {
 
 	// Construct endpoint with originID
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
-	req, err := s.client.CreateRequest(striketracker.DELETE, endpoint, nil)
+	req, err := s.client.NewRequestContext(ctx, striketracker.DELETE, endpoint, nil)
 	if err != nil {
 		return err
 	}
@@ -142,7 +143,7 @@ func (s *Service) Delete(accountHash string, originID int) error {
 //
 // Sends Origin
 // Receives Origin
-func (s *Service) Update(accountHash string, origin *models.Origin) (*models.Origin, error) {
+func (s *Service) Update(ctx context.Context, accountHash string, origin *models.Origin) (*models.Origin, error) {
 	// Validate incoming origin payload
 	if err := origin.Validate(); err != nil {
 		return nil, err
@@ -151,7 +152,7 @@ func (s *Service) Update(accountHash string, origin *models.Origin) (*models.Ori
 	// Construct endpoint with originID
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), origin.ID)
 
-	req, err := s.client.CreateRequest(striketracker.PUT, endpoint, origin)
+	req, err := s.client.NewRequestContext(ctx, striketracker.PUT, endpoint, origin)
 	if err != nil {
 		return nil, err
 	}
@@ -179,11 +180,11 @@ func (s *Service) Update(accountHash string, origin *models.Origin) (*models.Ori
 // GET /api/v1/accounts/{account_hash}/origins - list all origins
 //
 // Receives OriginList
-func (s *Service) List(accountHash string) (*models.OriginList, error) {
+func (s *Service) List(ctx context.Context, accountHash string) (*models.OriginList, error) {
 
 	ol := &models.OriginList{}
 
-	req, err := s.client.CreateRequest(striketracker.GET, s.Endpoint.Format(accountHash), nil)
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, s.Endpoint.Format(accountHash), nil)
 	if err != nil {
 		return nil, err
 	}
