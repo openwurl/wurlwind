@@ -6,7 +6,7 @@
 //  )
 //  originService := origin.New(c)
 //
-// Context can be configured and passed in
+// Context for early cancellation can be configured and passed in
 //
 //  ctx := context.Background()
 //  ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
@@ -31,11 +31,10 @@ import (
 	"github.com/openwurl/wurlwind/striketracker/services"
 )
 
-// Base /api/v1/accounts/{account_hash}/origins
-
 const path = "/origins"
 
 // Service describes the interaction with the origins API
+//  /api/v1/accounts/{account_hash}/origins
 type Service struct {
 	client   *striketracker.Client
 	Endpoint *endpoints.Endpoint
@@ -132,6 +131,7 @@ func (s *Service) Delete(ctx context.Context, accountHash string, originID int) 
 
 	// Construct endpoint with originID
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
+
 	req, err := s.client.NewRequestContext(ctx, striketracker.DELETE, endpoint, nil)
 	if err != nil {
 		return err

@@ -1,5 +1,5 @@
-// Package authentication manages token exchanges
-// and authentication against Striketracker API
+// Package authentication manages the creation and destruction
+// of long-lived access tokens
 package authentication
 
 import (

@@ -15,9 +15,9 @@ type CertificateResponse struct {
 
 // Certificate encapsulates a TLS certificate on a subaccount
 type Certificate struct {
-	CABundle               string                  `json:"caBundle"`    // text of CA bundle
-	Certificate            string                  `json:"certificate"` // text of x.509 cert
-	CertificateInformation *CertificateInformation `json:"certificateInformation"`
+	CABundle               string                  `json:"caBundle"`                        // text of CA bundle
+	Certificate            string                  `json:"certificate" validate:"required"` // text of x.509 cert
+	CertificateInformation *CertificateInformation `json:"certificateInformation"`          // x.509 model
 	Ciphers                string                  `json:"ciphers"`
 	CommonName             string                  `json:"commonName"`
 	CreatedDate            string                  `json:"createdDate"`
@@ -25,13 +25,13 @@ type Certificate struct {
 	Fingerprint            string                  `json:"fingerprint"`
 	ID                     int                     `json:"id"`
 	Issuer                 string                  `json:"issuer"`
-	Key                    string                  `json:"key"`
-	Requester              string
-	Trusted                bool   `json:"trusted"`
-	UpdatedDate            string `json:"updatedDate"`
+	Key                    string                  `json:"key" validate:"required"`
+	Requester              string                  // awaiting more context
+	Trusted                bool                    `json:"trusted"`
+	UpdatedDate            string                  `json:"updatedDate"`
 }
 
-// Validate validates the struct data
+// Validate validates the Certificate struct data
 func (c *Certificate) Validate() error {
 	v := validation.NewValidator(validator.New())
 	if err := v.Validate(c); err != nil {

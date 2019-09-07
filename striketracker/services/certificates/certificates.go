@@ -7,7 +7,7 @@
 //  )
 //  certService := certificates.New(c)
 //
-// Context can be configured and passed in
+// Context for early cancellation can be configured and passed in
 //
 //  ctx := context.Background()
 //  ctx, cancel := context.WithTimeout(ctx, 3*time.Second)

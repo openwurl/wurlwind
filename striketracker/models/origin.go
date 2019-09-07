@@ -19,7 +19,7 @@ type OriginList struct {
 	List []Origin `json:"list"`
 }
 
-// Origin is the central type for a highwind CDN origin
+// Origin is the central type for a highwind CDN origin request AND response
 type Origin struct {
 	Response
 	// Required
