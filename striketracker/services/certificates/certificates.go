@@ -1,3 +1,26 @@
+// Package certificates surfaces actions for Uploading, deleting, and updating etc
+// TLS certificates on striketracker
+//  c, err := striketracker.NewClientWithOptions(
+//  	striketracker.WithApplicationID("DescriptiveApplicationName"),
+//  	striketracker.WithDebug(true),
+//  	striketracker.WithAuthorizationHeaderToken(authToken),
+//  )
+//  certService := certificates.New(c)
+//
+// Context can be configured and passed in
+//
+//  ctx := context.Background()
+//  ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+//  defer cancel()
+//
+//  list, err := certService.List(ctx, accountHash)
+//
+// GET /api/v1/accounts/{account_hash}/certificates - List all certs on an account
+// POST /api/v1/accounts/{account_hash}/certificates - Upload a new certificate
+// DELETE /api/v1/accounts/{account_hash}/certificates/{certificate_id} - Delete a cert
+// GET/api/v1/accounts/{account_hash}/certificates/{certificate_id} - Get a certificate
+// PUT/api/v1/accounts/{account_hash}/certificates/{certificate_id} - Update a certificate (useful for expired certs)
+// GET/api/v1/accounts/{account_hash}/certificates/{certificate_id}/hosts - Get hosts for cert
 package certificates
 
 import (
@@ -8,15 +31,6 @@ import (
 	"github.com/openwurl/wurlwind/striketracker/models"
 	"github.com/openwurl/wurlwind/striketracker/services"
 )
-
-/*
-GET /api/v1/accounts/{account_hash}/certificates - List all certs on an account
-POST /api/v1/accounts/{account_hash}/certificates - Upload a new certificate
-DELETE /api/v1/accounts/{account_hash}/certificates/{certificate_id} - Delete a cert
-GET/api/v1/accounts/{account_hash}/certificates/{certificate_id} - Get a certificate
-PUT/api/v1/accounts/{account_hash}/certificates/{certificate_id} - Update a certificate (useful for expired certs)
-GET/api/v1/accounts/{account_hash}/certificates/{certificate_id}/hosts - Get hosts for cert
-*/
 
 const path = "/certificates"
 

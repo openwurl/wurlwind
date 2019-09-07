@@ -1,3 +1,24 @@
+// Package origin describes interactions with the Striketracker Origin service
+//  c, err := striketracker.NewClientWithOptions(
+//  	striketracker.WithApplicationID("DescriptiveApplicationName"),
+//  	striketracker.WithDebug(true),
+//  	striketracker.WithAuthorizationHeaderToken(authToken),
+//  )
+//  originService := origin.New(c)
+//
+// Context can be configured and passed in
+//
+//  ctx := context.Background()
+//  ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
+//  defer cancel()
+//
+//  list, err := originService.List(ctx, accountHash)
+//
+// POST /api/v1/accounts/{account_hash}/origins - create new origin
+// GET /api/v1/accounts/{account_hash}/origins - list all origins
+// DELETE /api/v1/accounts/{account_hash}/origins/{origin_id} - delete
+// GET /api/v1/accounts/{account_hash}/origins/{origin_id} - get one origin
+// PUT /api/v1/accounts/{account_hash}/origins/{origin_id} - update origin
 package origin
 
 import (
@@ -9,14 +30,6 @@ import (
 	"github.com/openwurl/wurlwind/striketracker/models"
 	"github.com/openwurl/wurlwind/striketracker/services"
 )
-
-/*
-POST /api/v1/accounts/{account_hash}/origins - create new origin
-GET /api/v1/accounts/{account_hash}/origins - list all origins
-DELETE /api/v1/accounts/{account_hash}/origins/{origin_id} - delete
-GET /api/v1/accounts/{account_hash}/origins/{origin_id} - get one origin
-PUT /api/v1/accounts/{account_hash}/origins/{origin_id} - update origin
-*/
 
 // Base /api/v1/accounts/{account_hash}/origins
 

@@ -28,7 +28,7 @@ type Client struct {
 	Headers       []*Header
 }
 
-// NewClientFromConfiguration will return a client with the provided configuration
+// NewClientFromConfiguration will validate configuration and return a configured client
 func NewClientFromConfiguration(config *Configuration) (*Client, error) {
 	err := config.Validate()
 	if err != nil {
@@ -43,7 +43,7 @@ func NewClientFromConfiguration(config *Configuration) (*Client, error) {
 	return client, nil
 }
 
-// NewClientWithOptions returns a configured client from functional parameters
+// NewClientWithOptions validates configuration and returns a configured client from functional parameters
 func NewClientWithOptions(opts ...Option) (*Client, error) {
 	options := &Configuration{}
 	for _, opt := range opts {
