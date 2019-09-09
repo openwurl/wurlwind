@@ -96,6 +96,7 @@ func (s *Service) Create(ctx context.Context, accountHash string, origin *models
 func (s *Service) Get(ctx context.Context, accountHash string, originID int) (*models.Origin, error) {
 
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
+
 	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
 	if err != nil {
 		return nil, err
