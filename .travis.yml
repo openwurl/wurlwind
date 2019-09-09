@@ -5,3 +5,17 @@ language: go
 
 go:
 - 1.11.x
+
+jobs:
+  include:
+    - stage: "Unit"
+      name: "Unit Tests"
+      script: make test
+    - stage: "Integration"
+      name: "Integration Tests"
+      script: make integration
+
+stages:
+  - name: Unit
+  - name: Integration
+    if: type = cron

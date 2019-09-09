@@ -19,7 +19,7 @@ type OriginList struct {
 	List []Origin `json:"list"`
 }
 
-// Origin is the central type for a highwind CDN origin
+// Origin is the central type for a highwind CDN origin request AND response
 type Origin struct {
 	Response
 	// Required
@@ -34,7 +34,7 @@ type Origin struct {
 	CreatedDate                  string `json:"createdDate,omitempty"`
 	ErrorCacheTTLSeconds         int    `json:"errorCacheTTLSeconds,omitempty"`         // DNS Timeout
 	MaxConnectionsPerEdge        int    `json:"maxConnectionsPerEdge,omitempty"`        // If enabled, the maximum number of concurrent connection any single edge will make to the origin
-	MaxConnectionsPerEdgeEnabled int    `json:"maxConnectionsPerEdgeEnabled,omitempty"` // Indicates if the CDN should limit the number of connections each edge should make when pulling content
+	MaxConnectionsPerEdgeEnabled bool   `json:"maxConnectionsPerEdgeEnabled,omitempty"` // Indicates if the CDN should limit the number of connections each edge should make when pulling content
 	MaximumOriginPullSeconds     int    `json:"maximumOriginPullSeconds,omitempty"`
 	MaxRetryCount                int    `json:"maxRetryCount,omitempty"`
 	OriginCacheHeaders           string `json:"originCacheHeaders,omitempty"` // Access-Control-Allow-Origin
@@ -55,5 +55,6 @@ func (o *Origin) Validate() error {
 	if err := v.Validate(o); err != nil {
 		return err
 	}
+
 	return nil
 }

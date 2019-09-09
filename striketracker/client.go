@@ -2,10 +2,12 @@ package striketracker
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/openwurl/wurlwind/striketracker/identity"
 )
@@ -21,12 +23,12 @@ type Client struct {
 	Debug bool
 	//Auth          *auth.Wrapper
 	Identity      *identity.Identification
-	c             *http.Client
+	c             *http.Client // TODO don't use DefaultClient and allow injectable
 	ApplicationID string
 	Headers       []*Header
 }
 
-// NewClientFromConfiguration will return a client with the provided configuration
+// NewClientFromConfiguration will validate configuration and return a configured client
 func NewClientFromConfiguration(config *Configuration) (*Client, error) {
 	err := config.Validate()
 	if err != nil {
@@ -41,7 +43,7 @@ func NewClientFromConfiguration(config *Configuration) (*Client, error) {
 	return client, nil
 }
 
-// NewClientWithOptions returns a configured client from functional parameters
+// NewClientWithOptions validates configuration and returns a configured client from functional parameters
 func NewClientWithOptions(opts ...Option) (*Client, error) {
 	options := &Configuration{}
 	for _, opt := range opts {
@@ -81,13 +83,24 @@ func NewClient(config *Configuration) (*Client, error) {
 			AuthorizationHeaderToken: config.AuthorizationHeaderToken,
 		},
 	}
+
+	// TODO eventually instantiate a custom client but not ready for that yet
+
+	// Configure timeout on default client
+	if config.Timeout == 0 {
+		c.c.Timeout = time.Second * 10
+	} else {
+		c.c.Timeout = time.Second * time.Duration(config.Timeout)
+	}
+
 	// Set default headers
 	c.Headers = c.GetHeaders()
 	return c, nil
 }
 
-// CreateRequest assembles a request with sensitive information
-func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
+// NewRequestContext assembles a request with sensitive information and context
+func (c *Client) NewRequestContext(ctx context.Context, method HTTPMethod, URL string, body interface{}) (*http.Request, error) {
+	// Attach body if applicable
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
@@ -101,6 +114,7 @@ func (c *Client) CreateRequest(method HTTPMethod, URL string, body interface{}) 
 	if err != nil {
 		return nil, err
 	}
+	req = req.WithContext(ctx)
 
 	for _, header := range c.Headers {
 		req.Header.Set(header.Key, header.Value)
@@ -126,7 +140,9 @@ func (c *Client) DoRequest(req *http.Request, v interface{}) (*http.Response, er
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(v)
+	if v != nil {
+		err = json.NewDecoder(resp.Body).Decode(v)
+	}
 	return resp, err
 }
 
