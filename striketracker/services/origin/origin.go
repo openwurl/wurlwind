@@ -144,7 +144,6 @@ func (s *Service) Delete(ctx context.Context, accountHash string, originID int) 
 	}
 
 	if err = services.ValidateResponse(resp); err != nil {
-		fmt.Println("validating")
 		return err
 	}
 

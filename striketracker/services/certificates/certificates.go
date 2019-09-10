@@ -25,6 +25,7 @@ package certificates
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
@@ -84,7 +85,7 @@ func (s *Service) List(ctx context.Context, accountHash string) (*models.Certifi
 // GET /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
 // Receives Certificate
-func (s *Service) Get(ctx context.Context, accountHash string, certificateID string) (*models.Certificate, error) {
+func (s *Service) Get(ctx context.Context, accountHash string, certificateID int) (*models.Certificate, error) {
 	return nil, nil
 }
 
@@ -104,7 +105,31 @@ func (s *Service) Hosts(ctx context.Context, accountHash string, certificateID s
 // Sends Certificate
 // Receives Certificate
 func (s *Service) Upload(ctx context.Context, accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
-	return nil, nil
+	if err := certificate.Validate(); err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, s.Endpoint.Format(accountHash), certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := certificate.Err(err); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return certificate, nil
 }
 
 // Delete a certificate
@@ -112,7 +137,24 @@ func (s *Service) Upload(ctx context.Context, accountHash string, certificate *m
 // DELETE /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
 // Pass in a models.Certificate with the ID set
-func (s *Service) Delete(ctx context.Context, accountHash string, certificate *models.Certificate) error {
+func (s *Service) Delete(ctx context.Context, accountHash string, certificateID int) error {
+	// construct endpoint with certificateID
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), certificateID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.DELETE, endpoint, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := s.client.DoRequest(req, nil)
+	if err != nil {
+		return err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		return err
+	}
+
 	return nil
 }
 

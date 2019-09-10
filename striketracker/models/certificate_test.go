@@ -21,7 +21,7 @@ func TestCertificateHost(t *testing.T) {
 		]
 	}`)
 	//var dest CertificateHosts
-	var dest CertificateHostsUnload
+	var dest CertificateHostsResponse
 
 	err := json.Unmarshal(test, &dest)
 	if err != nil {
