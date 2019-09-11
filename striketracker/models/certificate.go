@@ -24,20 +24,20 @@ type CertificateRequester struct {
 // Certificate encapsulates a TLS certificate request and response on a subaccount
 type Certificate struct {
 	Response
-	CABundle               string                  `json:"caBundle"`                         // text of CA bundle
-	Certificate            string                  `json:"certificate" validate:"required"`  // text of x.509 cert
-	CertificateInformation *CertificateInformation `json:"certificateInformation,omitempty"` // x.509 model
+	CABundle               string                  `json:"caBundle"`                        // text of CA bundle
+	Certificate            string                  `json:"certificate" validate:"required"` // text of x.509 cert
+	CertificateInformation *CertificateInformation `json:"certificateInformation"`          // x.509 model
 	Ciphers                string                  `json:"ciphers"`
 	CommonName             string                  `json:"commonName"`
-	CreatedDate            string                  `json:"createdDate,omitempty"`
-	ExpirationDate         string                  `json:"expirationDate,omitempty"`
+	CreatedDate            string                  `json:"createdDate"`
+	ExpirationDate         string                  `json:"expirationDate"`
 	Fingerprint            string                  `json:"fingerprint"`
 	ID                     int                     `json:"id"`
 	Issuer                 string                  `json:"issuer,omitempty"`
 	Key                    string                  `json:"key" validate:"required"`
-	Requester              *CertificateRequester   `json:"certificateRequester,omitempty"`
-	Trusted                bool                    `json:"trusted,omitempty"`
-	UpdatedDate            string                  `json:"updatedDate,omitempty"`
+	Requester              *CertificateRequester   `json:"certificateRequester"`
+	Trusted                bool                    `json:"trusted"`
+	UpdatedDate            string                  `json:"updatedDate"`
 }
 
 // CABundleFromFile attaches a CA bundle from the given file
