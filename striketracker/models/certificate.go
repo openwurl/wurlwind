@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
 	"github.com/openwurl/wurlwind/pkg/fileio"
@@ -22,6 +23,11 @@ type CertificateRequester struct {
 }
 
 // Certificate encapsulates a TLS certificate request and response on a subaccount
+//
+// Certificate, CABundle, and the private Key can be all loaded in
+// either from environment variables or env-var defined files
+// via FromFile/FromEnv methods attached
+//
 type Certificate struct {
 	Response
 	CABundle               string                  `json:"caBundle"`                        // text of CA bundle
@@ -50,6 +56,17 @@ func (c *Certificate) CABundleFromFile(filepath string) error {
 	return nil
 }
 
+// CABundleFromEnv attaches a CA bundle from the environment variable
+func (c *Certificate) CABundleFromEnv(evar string) error {
+	caBundle := os.Getenv(evar)
+	if caBundle == "" {
+		return fmt.Errorf("Env var %s does not contain data", evar)
+	}
+
+	c.CABundle = caBundle
+	return nil
+}
+
 // CertificateFromFile attaches the certificate from the given file
 func (c *Certificate) CertificateFromFile(filepath string) error {
 	contents, err := fileio.FileToString(filepath)
@@ -61,6 +78,17 @@ func (c *Certificate) CertificateFromFile(filepath string) error {
 
 }
 
+// CertificateFromEnv attaches a Certificate from the environment variable
+func (c *Certificate) CertificateFromEnv(evar string) error {
+	cert := os.Getenv(evar)
+	if cert == "" {
+		return fmt.Errorf("Env var %s does not contain data", evar)
+	}
+
+	c.Certificate = cert
+	return nil
+}
+
 // KeyFromFile attaches the key from the given file
 func (c *Certificate) KeyFromFile(filepath string) error {
 	contents, err := fileio.FileToString(filepath)
@@ -68,6 +96,17 @@ func (c *Certificate) KeyFromFile(filepath string) error {
 		return err
 	}
 	c.Key = contents
+	return nil
+}
+
+// KeyFromEnv attaches a Private Key from the environment variable
+func (c *Certificate) KeyFromEnv(evar string) error {
+	key := os.Getenv(evar)
+	if key == "" {
+		return fmt.Errorf("Env var %s does not contain data", evar)
+	}
+
+	c.Key = key
 	return nil
 }
 
