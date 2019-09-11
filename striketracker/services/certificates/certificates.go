@@ -86,7 +86,33 @@ func (s *Service) List(ctx context.Context, accountHash string) (*models.Certifi
 //
 // Receives Certificate
 func (s *Service) Get(ctx context.Context, accountHash string, certificateID int) (*models.Certificate, error) {
-	return nil, nil
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), certificateID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	certificate := &models.Certificate{}
+
+	resp, err := s.client.DoRequest(req, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		// This is difficult to make more generic and needs copied since
+		// Response is inherited and not first class in the struct
+		if respErr := certificate.Err(err); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return certificate, nil
 }
 
 // Hosts gets hosts for a certificate
