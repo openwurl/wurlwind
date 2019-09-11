@@ -113,6 +113,7 @@ func (c *CertificateHostsResponse) Process() (*CertificateHosts, error) {
 
 // CertificateHosts is a list of hosts consuming a certificate in structured format
 type CertificateHosts struct {
+	Response
 	CertificateName string
 	Hosts           []*CertificateHost
 }

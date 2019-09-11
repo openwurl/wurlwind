@@ -120,8 +120,29 @@ func (s *Service) Get(ctx context.Context, accountHash string, certificateID int
 // GET /api/v1/accounts/{account_hash}/certificates/{certificate_id}/hosts
 //
 // Receives CertificateHosts
-func (s *Service) Hosts(ctx context.Context, accountHash string, certificateID string) (*models.CertificateHosts, error) {
-	return nil, nil
+//
+// This is a weird one without the usually structured response
+// so there is no error extraction
+func (s *Service) Hosts(ctx context.Context, accountHash string, certificateID int) (*models.CertificateHosts, error) {
+	endpoint := fmt.Sprintf("%s/%d/hosts", s.Endpoint.Format(accountHash), certificateID)
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	certHostsResponse := &models.CertificateHostsResponse{}
+
+	_, err = s.client.DoRequest(req, certHostsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	certHosts, err := certHostsResponse.Process()
+	if err != nil {
+		return nil, err
+	}
+
+	return certHosts, nil
 }
 
 // Upload a new certificate
@@ -191,5 +212,36 @@ func (s *Service) Delete(ctx context.Context, accountHash string, certificateID 
 // Sends Certificate
 // Receives Certificate
 func (s *Service) Update(ctx context.Context, accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
-	return nil, nil
+	// Validate incoming payload
+	if err := certificate.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Construct
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), certificate.ID)
+
+	// Build
+	req, err := s.client.NewRequestContext(ctx, striketracker.PUT, endpoint, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Execute
+	resp, err := s.client.DoRequest(req, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate response
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := certificate.Err(err); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return certificate, nil
 }
