@@ -9,8 +9,6 @@ import "fmt"
 // Authorization manages the bearer and auth tokens
 type Authorization struct {
 	authorizationHeaderToken string
-	AccessToken              string
-	RefreshToken             string
 }
 
 // GetBearer returns the bearer token header value
