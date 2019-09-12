@@ -28,6 +28,8 @@ func setup() (*Service, string, error) {
 
 // TestDestructiveCertificateSuiteIntegration tests create/update/get/delete
 func TestDestructiveCertificateSuiteIntegration(t *testing.T) {
+	t.Skip("Skipping certificate integration tests for now")
+
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}
