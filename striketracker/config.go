@@ -1,8 +1,8 @@
 package striketracker
 
 import (
-	"github.com/wurlinc/hls-config/pkg/validate"
-	validator "gopkg.in/go-playground/validator.v9"
+	"github.com/openwurl/wurlwind/pkg/validation"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // Configuration provides a service configuration for the client
@@ -26,7 +26,7 @@ func NewConfiguration(options ...func(*Configuration)) (*Configuration, error) {
 
 // Validate validates the configuration is valid
 func (c *Configuration) Validate() error {
-	v := validate.NewValidator(validator.New())
+	v := validation.NewValidator(validator.New())
 	if err := v.Validate(c); err != nil {
 		return err
 	}

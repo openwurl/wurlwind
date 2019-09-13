@@ -3,7 +3,7 @@ package validation
 import (
 	"regexp"
 
-	validator "gopkg.in/go-playground/validator.v9"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // RegExp compilations
