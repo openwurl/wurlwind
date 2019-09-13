@@ -15,16 +15,11 @@
 //
 //  list, err := certService.List(ctx, accountHash)
 //
-// GET /api/v1/accounts/{account_hash}/certificates - List all certs on an account
-// POST /api/v1/accounts/{account_hash}/certificates - Upload a new certificate
-// DELETE /api/v1/accounts/{account_hash}/certificates/{certificate_id} - Delete a cert
-// GET/api/v1/accounts/{account_hash}/certificates/{certificate_id} - Get a certificate
-// PUT/api/v1/accounts/{account_hash}/certificates/{certificate_id} - Update a certificate (useful for expired certs)
-// GET/api/v1/accounts/{account_hash}/certificates/{certificate_id}/hosts - Get hosts for cert
 package certificates
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
@@ -34,13 +29,13 @@ import (
 
 const path = "/certificates"
 
-// Service describes the interaction with the origins API
+// Service describes the interaction with the certificates API
 type Service struct {
 	client   *striketracker.Client
 	Endpoint *endpoints.Endpoint
 }
 
-// New returns a new Origin Service
+// New returns a new Certificates Service
 func New(c *striketracker.Client) *Service {
 	e := &endpoints.Endpoint{
 		BasePath: endpoints.Accounts,
@@ -58,7 +53,7 @@ func New(c *striketracker.Client) *Service {
 //
 // GET /api/v1/accounts/{account_hash}/certificates
 //
-// Receives CertificateResponse
+// Returns models.CertificateResponse
 func (s *Service) List(ctx context.Context, accountHash string) (*models.CertificateResponse, error) {
 	cl := &models.CertificateResponse{}
 
@@ -83,36 +78,129 @@ func (s *Service) List(ctx context.Context, accountHash string) (*models.Certifi
 //
 // GET /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
-// Receives Certificate
-func (s *Service) Get(ctx context.Context, accountHash string, certificateID string) (*models.Certificate, error) {
-	return nil, nil
+// Accepts Certificate ID
+//
+// Returns models.Certificate
+func (s *Service) Get(ctx context.Context, accountHash string, certificateID int) (*models.Certificate, error) {
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), certificateID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	certificate := &models.Certificate{}
+
+	resp, err := s.client.DoRequest(req, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body that supercede
+		// validation errors and add them to our response
+		// This is difficult to make more generic and needs copied since
+		// Response is inherited and not first class in the struct
+		if respErr := certificate.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return certificate, nil
 }
 
 // Hosts gets hosts for a certificate
 //
 // GET /api/v1/accounts/{account_hash}/certificates/{certificate_id}/hosts
 //
-// Receives CertificateHosts
-func (s *Service) Hosts(ctx context.Context, accountHash string, certificateID string) (*models.CertificateHosts, error) {
-	return nil, nil
+// Receives models.CertificateHosts
+//
+// This is a weird one without the usually structured response
+// so there is no error extraction
+// It may need expanded once I come across a case with more than one Common Name
+func (s *Service) Hosts(ctx context.Context, accountHash string, certificateID int) (*models.CertificateHosts, error) {
+	endpoint := fmt.Sprintf("%s/%d/hosts", s.Endpoint.Format(accountHash), certificateID)
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	certHostsResponse := &models.CertificateHostsResponse{}
+
+	_, err = s.client.DoRequest(req, certHostsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	certHosts, err := certHostsResponse.Process()
+	if err != nil {
+		return nil, err
+	}
+
+	return certHosts, nil
 }
 
 // Upload a new certificate
 //
 // POST /api/v1/accounts/{account_hash}/certificates
 //
-// Sends Certificate
-// Receives Certificate
+// Accepts models.Certificate
+//
+// Returns models.Certificate
 func (s *Service) Upload(ctx context.Context, accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
-	return nil, nil
+	if err := certificate.Validate(); err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, s.Endpoint.Format(accountHash), certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := certificate.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return certificate, nil
 }
 
 // Delete a certificate
 //
 // DELETE /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
-// Pass in a models.Certificate with the ID set
-func (s *Service) Delete(ctx context.Context, accountHash string, certificate *models.Certificate) error {
+// Accepts Certificate ID
+func (s *Service) Delete(ctx context.Context, accountHash string, certificateID int) error {
+	// construct endpoint with certificateID
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), certificateID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.DELETE, endpoint, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := s.client.DoRequest(req, nil)
+	if err != nil {
+		return err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -120,8 +208,40 @@ func (s *Service) Delete(ctx context.Context, accountHash string, certificate *m
 //
 // PUT /api/v1/accounts/{account_hash}/certificates/{certificate_id}
 //
-// Sends Certificate
-// Receives Certificate
+// Accepts models.Certificate
+//
+// Returns updated models.Certificate
 func (s *Service) Update(ctx context.Context, accountHash string, certificate *models.Certificate) (*models.Certificate, error) {
-	return nil, nil
+	// Validate incoming payload
+	if err := certificate.Validate(); err != nil {
+		return nil, err
+	}
+
+	// Construct
+	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), certificate.ID)
+
+	// Build
+	req, err := s.client.NewRequestContext(ctx, striketracker.PUT, endpoint, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Execute
+	resp, err := s.client.DoRequest(req, certificate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Validate response
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := certificate.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return certificate, nil
 }

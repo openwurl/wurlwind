@@ -27,8 +27,8 @@ func setup() (*Service, string, error) {
 	return s, accountHash, nil
 }
 
-// TestDestructiveSuiteIntegration tests create/update/get/delete
-func TestDestructiveSuiteIntegration(t *testing.T) {
+// TestDestructiveOriginSuiteIntegration tests create/update/get/delete
+func TestDestructiveOriginSuiteIntegration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")
 	}

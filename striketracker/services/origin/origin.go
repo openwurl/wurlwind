@@ -14,11 +14,6 @@
 //
 //  list, err := originService.List(ctx, accountHash)
 //
-// POST /api/v1/accounts/{account_hash}/origins - create new origin
-// GET /api/v1/accounts/{account_hash}/origins - list all origins
-// DELETE /api/v1/accounts/{account_hash}/origins/{origin_id} - delete
-// GET /api/v1/accounts/{account_hash}/origins/{origin_id} - get one origin
-// PUT /api/v1/accounts/{account_hash}/origins/{origin_id} - update origin
 package origin
 
 import (
@@ -34,7 +29,7 @@ import (
 const path = "/origins"
 
 // Service describes the interaction with the origins API
-//  /api/v1/accounts/{account_hash}/origins
+// and contains the instantiated client
 type Service struct {
 	client   *striketracker.Client
 	Endpoint *endpoints.Endpoint
@@ -57,8 +52,9 @@ func New(c *striketracker.Client) *Service {
 //
 // POST /api/v1/accounts/{account_hash}/origins
 //
-// Sends Origin
-// Receives Origin
+// Accepts a defined models.Origin
+//
+// Returns an upodated models.Origin
 func (s *Service) Create(ctx context.Context, accountHash string, origin *models.Origin) (*models.Origin, error) {
 
 	if err := origin.Validate(); err != nil {
@@ -78,7 +74,7 @@ func (s *Service) Create(ctx context.Context, accountHash string, origin *models
 	if err = services.ValidateResponse(resp); err != nil {
 
 		// Catch any embedded errors in the body and add them to our response
-		if respErr := origin.Err(err); respErr != nil {
+		if respErr := origin.Error(); respErr != nil {
 			err = respErr
 		}
 
@@ -92,10 +88,23 @@ func (s *Service) Create(ctx context.Context, accountHash string, origin *models
 //
 // GET /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
-// Receives Origin
+// Accepts OriginID
+//
+// Returns models.Origin
+//
+// Get is great for combining with other methods when you may only have an ID and account
+// hash (such as for terraform implementation)
+//
+//  receivedOrigin, err := o.Get(ctx, accountHash, originID)
+//  if err != nil {
+//  	// handle error
+//  }
+//  receivedOrigin.Hostname = "new.hostname.com"
+//  updatedOrigin, err := o.Update(ctx, accountHash, receivedOrigin)
 func (s *Service) Get(ctx context.Context, accountHash string, originID int) (*models.Origin, error) {
 
 	endpoint := fmt.Sprintf("%s/%d", s.Endpoint.Format(accountHash), originID)
+
 	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
 	if err != nil {
 		return nil, err
@@ -113,7 +122,7 @@ func (s *Service) Get(ctx context.Context, accountHash string, originID int) (*m
 		// Catch any embedded errors in the body and add them to our response
 		// This is difficult to make more generic and needs copied since
 		// Response is inherited and not first class in the struct
-		if respErr := origin.Err(err); respErr != nil {
+		if respErr := origin.Error(); respErr != nil {
 			err = respErr
 		}
 
@@ -127,6 +136,9 @@ func (s *Service) Get(ctx context.Context, accountHash string, originID int) (*m
 //
 // DELETE /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
+// Accepts Origin ID
+//
+// Returns error
 func (s *Service) Delete(ctx context.Context, accountHash string, originID int) error {
 
 	// Construct endpoint with originID
@@ -143,7 +155,6 @@ func (s *Service) Delete(ctx context.Context, accountHash string, originID int) 
 	}
 
 	if err = services.ValidateResponse(resp); err != nil {
-		fmt.Println("validating")
 		return err
 	}
 
@@ -154,8 +165,9 @@ func (s *Service) Delete(ctx context.Context, accountHash string, originID int) 
 //
 // PUT /api/v1/accounts/{account_hash}/origins/{origin_id}
 //
-// Sends Origin
-// Receives Origin
+// Accepts models.Origin
+//
+// Returns updated models.Origin
 func (s *Service) Update(ctx context.Context, accountHash string, origin *models.Origin) (*models.Origin, error) {
 	// Validate incoming origin payload
 	if err := origin.Validate(); err != nil {
@@ -178,7 +190,7 @@ func (s *Service) Update(ctx context.Context, accountHash string, origin *models
 	if err = services.ValidateResponse(resp); err != nil {
 
 		// Catch any embedded errors in the body and add them to our response
-		if respErr := origin.Err(err); respErr != nil {
+		if respErr := origin.Error(); respErr != nil {
 			err = respErr
 		}
 
@@ -192,7 +204,7 @@ func (s *Service) Update(ctx context.Context, accountHash string, origin *models
 //
 // GET /api/v1/accounts/{account_hash}/origins - list all origins
 //
-// Receives OriginList
+// Returns models.OriginList
 func (s *Service) List(ctx context.Context, accountHash string) (*models.OriginList, error) {
 
 	ol := &models.OriginList{}

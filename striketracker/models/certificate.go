@@ -2,8 +2,10 @@ package models
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 
+	"github.com/openwurl/wurlwind/pkg/fileio"
 	"github.com/openwurl/wurlwind/pkg/validation"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -13,8 +15,21 @@ type CertificateResponse struct {
 	List []Certificate `json:"list"`
 }
 
-// Certificate encapsulates a TLS certificate on a subaccount
+// CertificateRequester represents the requesting entity of a certificate
+type CertificateRequester struct {
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Email     string `json:"email" validate:"email"`
+}
+
+// Certificate encapsulates a TLS certificate request and response on a subaccount
+//
+// Certificate, CABundle, and the private Key can be all loaded in
+// either from environment variables or env-var defined files
+// via FromFile/FromEnv methods attached
+//
 type Certificate struct {
+	Response
 	CABundle               string                  `json:"caBundle"`                        // text of CA bundle
 	Certificate            string                  `json:"certificate" validate:"required"` // text of x.509 cert
 	CertificateInformation *CertificateInformation `json:"certificateInformation"`          // x.509 model
@@ -24,11 +39,75 @@ type Certificate struct {
 	ExpirationDate         string                  `json:"expirationDate"`
 	Fingerprint            string                  `json:"fingerprint"`
 	ID                     int                     `json:"id"`
-	Issuer                 string                  `json:"issuer"`
+	Issuer                 string                  `json:"issuer,omitempty"`
 	Key                    string                  `json:"key" validate:"required"`
-	Requester              string                  // awaiting more context
+	Requester              *CertificateRequester   `json:"certificateRequester"`
 	Trusted                bool                    `json:"trusted"`
 	UpdatedDate            string                  `json:"updatedDate"`
+}
+
+// CABundleFromFile attaches a CA bundle from the given file
+func (c *Certificate) CABundleFromFile(filepath string) error {
+	contents, err := fileio.FileToString(filepath)
+	if err != nil {
+		return err
+	}
+	c.CABundle = contents
+	return nil
+}
+
+// CABundleFromEnv attaches a CA bundle from the environment variable
+func (c *Certificate) CABundleFromEnv(evar string) error {
+	caBundle := os.Getenv(evar)
+	if caBundle == "" {
+		return fmt.Errorf("Env var %s does not contain data", evar)
+	}
+
+	c.CABundle = caBundle
+	return nil
+}
+
+// CertificateFromFile attaches the certificate from the given file
+func (c *Certificate) CertificateFromFile(filepath string) error {
+	contents, err := fileio.FileToString(filepath)
+	if err != nil {
+		return err
+	}
+	c.Certificate = contents
+	return nil
+
+}
+
+// CertificateFromEnv attaches a Certificate from the environment variable
+func (c *Certificate) CertificateFromEnv(evar string) error {
+	cert := os.Getenv(evar)
+	if cert == "" {
+		return fmt.Errorf("Env var %s does not contain data", evar)
+	}
+
+	c.Certificate = cert
+	return nil
+}
+
+// KeyFromFile attaches the key from the given file
+func (c *Certificate) KeyFromFile(filepath string) error {
+	contents, err := fileio.FileToString(filepath)
+	if err != nil {
+		return err
+	}
+	c.Key = contents
+	return nil
+}
+
+// KeyFromEnv attaches a Private Key from the environment variable
+func (c *Certificate) KeyFromEnv(evar string) error {
+	key := os.Getenv(evar)
+	if key == "" {
+		return fmt.Errorf("Env var %s does not contain data", evar)
+	}
+
+	c.Key = key
+	return nil
 }
 
 // Validate validates the Certificate struct data
@@ -43,16 +122,21 @@ func (c *Certificate) Validate() error {
 
 // CertificateInformation encapsulates a debundled cert
 type CertificateInformation struct {
-	Certificate string `json:"certificate"`
-	Key         string `json:"key"`
-	CABundle    string `json:"caBundle"`
+	Name    string              `json:"name"`
+	Subject *CertificateSubject `json:"subject"`
 }
 
-// CertificateHostsUnload is a list of hosts consuming a certificate in its native format
-type CertificateHostsUnload map[string][]*CertificateHost
+// CertificateSubject is a sub field within CertificateInformation
+type CertificateSubject struct {
+	CN string `json:"CN"`
+}
 
-// Process returns a CertificateHosts
-func (c *CertificateHostsUnload) Process() (*CertificateHosts, error) {
+// CertificateHostsResponse is a list of hosts consuming a certificate in its native format
+// from the API
+type CertificateHostsResponse map[string][]*CertificateHost
+
+// Process returns a CertificateHosts from a CertificateHostsResponse
+func (c *CertificateHostsResponse) Process() (*CertificateHosts, error) {
 	keys := reflect.ValueOf(*c).MapKeys()
 	if len(keys) < 1 || len(keys) > 1 {
 		return nil, fmt.Errorf("There should only be a single certificate")
@@ -68,6 +152,7 @@ func (c *CertificateHostsUnload) Process() (*CertificateHosts, error) {
 
 // CertificateHosts is a list of hosts consuming a certificate in structured format
 type CertificateHosts struct {
+	Response
 	CertificateName string
 	Hosts           []*CertificateHost
 }

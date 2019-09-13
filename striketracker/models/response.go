@@ -4,15 +4,24 @@ import "fmt"
 
 // Response is the baseline response from the Striketracker API
 type Response struct {
-	Error string `json:"error,omitempty"`
-	Code  int    `json:"code,omitempty"`
+	Message string `json:"error,omitempty"`
+	Code    int    `json:"code,omitempty"`
 }
 
-// Err returns the embedded error if it exists
-func (r *Response) Err(err error) error {
-	if r.Error != "" {
-		embed := fmt.Sprintf("%d: %s", r.Code, r.Error)
-		return fmt.Errorf("%s: (%s)", err.Error(), embed)
+// Error returns the formatted error of the embedded if it exists
+//
+// You can use the provided errors to conveniently match ones you may expect
+//
+//	 if err != nil {
+//	 	 if err == striketracker.ErrUnauthenticated {
+//		 	 // handle
+//		 } else if err == striketracker.ErrResourceExists {
+//			 // handle
+//		 }
+//	 }
+func (r *Response) Error() error {
+	if r.Message != "" {
+		return fmt.Errorf("%d: %s", r.Code, r.Message)
 	}
-	return err
+	return nil
 }

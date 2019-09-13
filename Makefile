@@ -10,6 +10,12 @@ SHELL=/bin/bash -e -o pipefail
 AUTHORIZATIONHEADERKEY?=
 APPLICATIONID?=
 
+# Revisiting these later
+#INTEGRATIONACCOUNTHASH?=
+#INTEGRATIONPRIVATEKEY?=
+#INTEGRATIONCERTIFICATE?=
+#INTEGRATIONBUNDLE?=
+
 #########################
 ###      TARGETS      ###
 #########################

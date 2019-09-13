@@ -2,8 +2,50 @@ package models
 
 import (
 	"encoding/json"
+	"os"
 	"testing"
 )
+
+var (
+	testFakeBundle = "FAKE BUNDLE"
+	testFakeCert   = "FAKE CERT"
+	testFakeKey    = "FAKE KEY"
+)
+
+func TestCertificate(t *testing.T) {
+	os.Setenv("TESTKEY", testFakeKey)
+	os.Setenv("TESTCERT", testFakeCert)
+	os.Setenv("TESTBUNDLE", testFakeBundle)
+
+	c := &Certificate{}
+	err := c.KeyFromEnv("TESTKEY")
+	if err != nil {
+		t.Fatalf("Expected to fetch KEY environment variable but got error: %v", err)
+	}
+	err = c.CABundleFromEnv("TESTBUNDLE")
+	if err != nil {
+		t.Fatalf("Expected to fetch BUNDLE environment variable but got error: %v", err)
+	}
+	err = c.CertificateFromEnv("TESTCERT")
+	if err != nil {
+		t.Fatalf("Expected to fetch CERT environment variable but got error: %v", err)
+	}
+
+	if c.Key != testFakeKey {
+		t.Fatalf("expected key %s but got %s", testFakeKey, c.Key)
+	}
+	if c.Certificate != testFakeCert {
+		t.Fatalf("expected Cert %s but got %s", testFakeCert, c.Certificate)
+	}
+	if c.CABundle != testFakeBundle {
+		t.Fatalf("expected CABundle %s but got %s", testFakeBundle, c.CABundle)
+	}
+
+	if err = c.Validate(); err != nil {
+		t.Fatalf("expected certificate to pass validation for required fields but did not: %v", err)
+	}
+
+}
 
 // TODO make this test more structured, hard to do with the byte payload input
 func TestCertificateHost(t *testing.T) {
@@ -21,7 +63,7 @@ func TestCertificateHost(t *testing.T) {
 		]
 	}`)
 	//var dest CertificateHosts
-	var dest CertificateHostsUnload
+	var dest CertificateHostsResponse
 
 	err := json.Unmarshal(test, &dest)
 	if err != nil {
