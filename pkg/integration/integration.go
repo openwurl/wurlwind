@@ -69,64 +69,9 @@ func GetCertificateIntegrationValues() (*models.Certificate, error) {
 		}
 	}
 
-	if cert.Key == "" {
-		return nil, fmt.Errorf("Unable to configure certificate private key from env vars or file")
-	}
-	if cert.Certificate == "" {
-		return nil, fmt.Errorf("Unable to configure certificate from env vars or file")
-	}
-	if cert.CABundle == "" {
-		return nil, fmt.Errorf("Unable to configure certificate CA Bundle from env vars or file")
+	if err := cert.Validate(); err != nil {
+		return nil, err
 	}
 
 	return cert, nil
-}
-
-// GetCertificateIntegrationValues fetches the integration certificate from Env var
-//func GetCertificateIntegrationValues() (string, string, string, error) {
-/*
-	privKey, err := getEnvVar("INTEGRATIONPRIVATEKEY")
-	if err != nil {
-		return
-	}
-*/
-/*
-	privKeyFile := os.Getenv("INTEGRATIONPRIVATEKEY")
-	if privKeyFile == "" {
-		return "", "", "", fmt.Errorf("INTEGRATIONPRIVATEKEY must be defined to run integration tests")
-	}
-
-	certFile := os.Getenv("INTEGRATIONCERTIFICATE")
-	if certFile == "" {
-		return "", "", "", fmt.Errorf("INTEGRATIONCERTIFICATE must be defined to run integration tests")
-	}
-
-	bundleFile := os.Getenv("INTEGRATIONBUNDLE")
-	if bundleFile == "" {
-		return "", "", "", fmt.Errorf("INTEGRATIONBUNDLE must be defined to run integration tests")
-	}
-
-	privKey, err := fileio.FileToString(privKeyFile)
-	if err != nil {
-		return "", "", "", err
-	}
-	cert, err := fileio.FileToString(certFile)
-	if err != nil {
-		return "", "", "", err
-	}
-	bundle, err := fileio.FileToString(bundleFile)
-	if err != nil {
-		return "", "", "", err
-	}
-
-	return privKey, cert, bundle, nil
-*/
-//}
-
-func getEnvVar(evar string) (string, error) {
-	this := os.Getenv(evar)
-	if this == "" {
-		return "", fmt.Errorf("%s must be defined", evar)
-	}
-	return this, nil
 }
