@@ -6,6 +6,8 @@ import (
 
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
+	"github.com/openwurl/wurlwind/striketracker/models"
+	"github.com/openwurl/wurlwind/striketracker/services"
 )
 
 /*
@@ -39,31 +41,67 @@ func New(c *striketracker.Client) *Service {
 }
 
 // Create a new host
-func (s *Service) Create(ctx context.Context) {
+//
+// POST /api/v1/accounts/{account_hash}/hosts
+//
+// Accepts models.Host with services defined
+//
+// Returns an updated models.Host
+func (s *Service) Create(ctx context.Context, accountHash string, host *models.Host) (*models.Host, error) {
 
+	if err := host.Validate(); err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, s.Endpoint.Format(accountHash), host)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, host)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := host.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return host, nil
 }
 
 // Clone an existing host
-func (s *Service) Clone(ctx context.Context) {
+func (s *Service) Clone(ctx context.Context, accountHash string, hostHash string, cloneHost *models.CloneHost) (*models.Host, error) {
 
+	return nil, nil
 }
 
 // Update a host
-func (s *Service) Update(ctx context.Context) {
+func (s *Service) Update(ctx context.Context, accountHash string, hostHash string, host *models.Host) (*models.Host, error) {
 
+	if err := host.Validate(); err != nil {
+		return nil, err
+	}
+
+	return host, nil
 }
 
 // Delete a host
-func (s *Service) Delete(ctx context.Context) {
-
+func (s *Service) Delete(ctx context.Context, accountHash string, hostHash string) error {
+	return nil
 }
 
 // Get a host
-func (s *Service) Get(ctx context.Context) {
-
+func (s *Service) Get(ctx context.Context, accountHash string, hostHash string) (*models.Host, error) {
+	return nil, nil
 }
 
 // List Hosts
-func (s *Service) List(ctx context.Context) {
-
+func (s *Service) List(ctx context.Context, accountHash string, recursive bool) (*models.HostList, error) {
+	return nil, nil
 }
