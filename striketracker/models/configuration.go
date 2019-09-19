@@ -1,7 +1,13 @@
 package models
 
+import (
+	"github.com/openwurl/wurlwind/pkg/validation"
+	validator "gopkg.in/go-playground/validator.v9"
+)
+
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
+	Response
 	Hostname                    []string                     `json:"hostname"`
 	OriginPullLogs              *OriginPullLogs              `json:"originPullLogs"`
 	OriginPullProtocol          *OriginPullProtocol          `json:"originPullProtocol"`
@@ -18,6 +24,15 @@ type Configuration struct {
 	AccessLogs                  *AccessLogs                  `json:"accessLogs"`
 	OriginPullHost              *OriginPullHost              `json:"originPullHost"`
 	Scope                       *ConfigurationScope          `json:"scope"`
+}
+
+// Validate validates the struct data
+func (c *Configuration) Validate() error {
+	v := validation.NewValidator(validator.New())
+	if err := v.Validate(c); err != nil {
+		return err
+	}
+	return nil
 }
 
 // OriginPullLogs encapsulates origin pull log settings

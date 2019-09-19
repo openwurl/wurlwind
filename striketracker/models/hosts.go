@@ -26,6 +26,15 @@ func (h *Host) Validate() error {
 	return nil
 }
 
+// NewDefaultHost returns a named host with CDS enabled
+func NewDefaultHost(name string) *Host {
+	h := &Host{
+		Name: name,
+	}
+	h.Services = append(h.Services, ServiceCDS)
+	return h
+}
+
 // HostList is a list of hosts
 type HostList struct {
 	List []*Host `json:"list"`
