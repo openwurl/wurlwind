@@ -8,12 +8,12 @@ import (
 // Host defines the top level overview of a delivery host
 type Host struct {
 	Response
-	Name        string             `json:"name"`
+	Name        string             `json:"name" validate:"required"`
 	HashCode    string             `json:"hashCode"`
 	Type        string             `json:"type"`
 	CreatedDate string             `json:"createdDate"`
 	UpdatedDate string             `json:"updatedDate"`
-	Services    []*DeliveryService `json:"services"`
+	Services    []*DeliveryService `json:"services" validate:"required"`
 	Scopes      []*Scope           `json:"scopes"`
 }
 
