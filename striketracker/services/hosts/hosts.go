@@ -77,9 +77,41 @@ func (s *Service) Create(ctx context.Context, accountHash string, host *models.H
 }
 
 // Clone an existing host
+//
+// POST /api/v1/accounts/{account_hash}/hosts/{host_hash}
+//
+// Accepts HostHash for host to clone, and CloneHost for new host details
+//
+// Returns new host or error
 func (s *Service) Clone(ctx context.Context, accountHash string, hostHash string, cloneHost *models.CloneHost) (*models.Host, error) {
+	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), hostHash)
 
-	return nil, nil
+	if err := cloneHost.Validate(); err != nil {
+		return nil, err
+	}
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, endpoint, cloneHost)
+	if err != nil {
+		return nil, err
+	}
+
+	host := &models.Host{}
+
+	resp, err := s.client.DoRequest(req, host)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := host.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return host, nil
 }
 
 // Update a host
@@ -93,7 +125,30 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 }
 
 // Delete a host
+//
+// DELETE /api/v1/accounts/{account_hash}/hosts/{host_hash}
+//
+// Accepts hostHash
+//
+// Returns error
 func (s *Service) Delete(ctx context.Context, accountHash string, hostHash string) error {
+
+	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), hostHash)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.DELETE, endpoint, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := s.client.DoRequest(req, nil)
+	if err != nil {
+		return err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		return err
+	}
+
 	return nil
 }
 

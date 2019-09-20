@@ -51,6 +51,15 @@ type Scope struct {
 
 // CloneHost is a type used when cloning an existing host
 type CloneHost struct {
-	Name      string   `json:"name"`
+	Name      string   `json:"name" validate:"required"`
 	Hostnames []string `json:"hostnames"`
+}
+
+// Validate validates the struct data
+func (h *CloneHost) Validate() error {
+	v := validation.NewValidator(validator.New())
+	if err := v.Validate(h); err != nil {
+		return err
+	}
+	return nil
 }
