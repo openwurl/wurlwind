@@ -3,6 +3,7 @@ package hosts
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
@@ -97,8 +98,38 @@ func (s *Service) Delete(ctx context.Context, accountHash string, hostHash strin
 }
 
 // Get a host
+//
+// GET /api/v1/accounts/{account_hash}/hosts/{host_hash}
+//
+// Accepts HostHash
+//
+// Return models.Host
+//
+//
 func (s *Service) Get(ctx context.Context, accountHash string, hostHash string) (*models.Host, error) {
-	return nil, nil
+	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), hostHash)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	host := &models.Host{}
+
+	resp, err := s.client.DoRequest(req, host)
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		// This is difficult to make more generic and needs copied since
+		// Response is inherited and not first class in the struct
+		if respErr := host.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return host, nil
 }
 
 // List Hosts
