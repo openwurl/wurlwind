@@ -1,14 +1,20 @@
 package models
 
 import (
+	"fmt"
+	"strings"
+
+	"github.com/openwurl/wurlwind/pkg/utilities"
 	"github.com/openwurl/wurlwind/pkg/validation"
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
+var validProtocols = []string{"http", "https", "match"}
+
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
-	Hostname                    []string                     `json:"hostname"`
+	Hostname                    []*ConfigurationHostname     `json:"hostname"`
 	OriginPullLogs              *OriginPullLogs              `json:"originPullLogs"`
 	OriginPullProtocol          *OriginPullProtocol          `json:"originPullProtocol"`
 	OriginPullPolicy            []*OriginPullPolicy          `json:"originPullPolicy"`
@@ -35,6 +41,99 @@ func (c *Configuration) Validate() error {
 	return nil
 }
 
+// NewDefaultConfiguration returns a baseline configuration to be modified with defaults
+func NewDefaultConfiguration() *Configuration {
+	c := &Configuration{
+		OriginPullLogs: &OriginPullLogs{
+			Enabled: true,
+		},
+		OriginPullProtocol: &OriginPullProtocol{
+			Protocol: "https",
+		},
+		FileSegmentation: &FileSegmentation{
+			Enabled: true,
+		},
+		GzipOriginPull: &GzipOriginPull{
+			Enabled: true,
+		},
+		OriginPersistentConnections: &OriginPersistentConnections{
+			Enabled: false,
+		},
+		OriginPull: &OriginPull{
+			RedirectAction: "proxy",
+		},
+		CacheKeyModification: &CacheKeyModification{
+			NormalizeKeyPathToLowerCase: true,
+		},
+		Compression: &Compression{
+			GZIP: "txt,js,htm,html,css",
+			Mime: "test/*",
+		},
+		HTTPMethods: &HTTPMethods{
+			PassThru: "*",
+		},
+		AccessLogs: &AccessLogs{
+			Enabled: true,
+		},
+		OriginPullHost: &OriginPullHost{},
+		Scope: &ConfigurationScope{
+			Name: "Default",
+		},
+	}
+	c.OriginPullPolicy = append(c.OriginPullPolicy, &OriginPullPolicy{
+		ExpirePolicy:                   "CACHE_CONTROL",
+		ExpireSeconds:                  31536000,
+		ForceBypassCache:               false,
+		HonorMustRevalidate:            true,
+		HonorNoCache:                   true,
+		HonorPrivate:                   true,
+		HonorSMaxAge:                   true,
+		HTTPHeaders:                    "*",
+		MustRevalidateToNoCache:        true,
+		NoCacheBehavior:                "spec",
+		UpdateHTTPHeadersOn304Response: true,
+	})
+	c.CacheControl = append(c.CacheControl, &CacheControl{
+		MaxAge:            31536000,
+		SynchronizeMaxAge: true,
+	})
+	c.StaticHeader = append(c.StaticHeader, &StaticHeader{
+		HTTP:       "Access-Control-Allow-Origin: *",
+		OriginPull: "Host: %client.request.host%",
+	})
+	return c
+}
+
+/*
+	Configuration Modification
+*/
+
+// SetOriginPullLogs enables or disables origin pull logging
+func (c *Configuration) SetOriginPullLogs(enabled bool) {
+	c.OriginPullLogs.Enabled = enabled
+}
+
+// SetOriginPullProtocol sets the origin pull protocol to the one given
+func (c *Configuration) SetOriginPullProtocol(protocol string) error {
+	if !utilities.SliceContainsString(protocol, validProtocols) {
+		return fmt.Errorf("%s is not a valid protocol. Must be one of (%s)", protocol, strings.Join(validProtocols, ","))
+	}
+	c.OriginPullProtocol.Protocol = protocol
+	return nil
+}
+
+// SetFileSegmentation
+
+// SetGzipOriginPull
+
+// SetOriginPersistentConnections
+
+// SetOriginPull
+
+/*
+	Sub structures
+*/
+
 // OriginPullLogs encapsulates origin pull log settings
 type OriginPullLogs struct {
 	Enabled bool `json:"enabled"`
@@ -59,6 +158,11 @@ type OriginPullPolicy struct {
 	MustRevalidateToNoCache        bool   `json:"mustRevalidateToNoCache"`
 	NoCacheBehavior                string `json:"noCacheBehavior"`
 	UpdateHTTPHeadersOn304Response bool   `json:"updateHttpHeadersOn304Response"`
+}
+
+// ConfigurationHostname ...
+type ConfigurationHostname struct {
+	Domain string `json:"domain"`
 }
 
 // FileSegmentation ...

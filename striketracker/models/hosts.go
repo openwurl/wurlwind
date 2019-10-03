@@ -5,6 +5,11 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
+const (
+	defaultPath = "/"
+	scopeCDS    = "CDS"
+)
+
 // Host defines the top level overview of a delivery host
 type Host struct {
 	Response
@@ -24,6 +29,17 @@ func (h *Host) Validate() error {
 		return err
 	}
 	return nil
+}
+
+// GetCDSScope returns the CDS "/" scope
+func (h *Host) GetCDSScope() *Scope {
+	var rootScope *Scope
+	for _, scope := range h.Scopes {
+		if scope.Platform == scopeCDS && scope.Path == defaultPath {
+			rootScope = scope
+		}
+	}
+	return rootScope
 }
 
 // NewDefaultHost returns a named host with CDS enabled
