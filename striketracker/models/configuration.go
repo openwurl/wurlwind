@@ -9,7 +9,8 @@ import (
 	validator "gopkg.in/go-playground/validator.v9"
 )
 
-var validProtocols = []string{"http", "https", "match"}
+// ValidPullProtocols are for matching against user input on pull protocol
+var ValidPullProtocols = []string{"http", "https", "match"}
 
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
@@ -113,10 +114,15 @@ func (c *Configuration) SetOriginPullLogs(enabled bool) {
 	c.OriginPullLogs.Enabled = enabled
 }
 
+// GetOriginPullLogs returns the origin pull log enabled setting
+func (c *Configuration) GetOriginPullLogs() bool {
+	return c.OriginPullLogs.Enabled
+}
+
 // SetOriginPullProtocol sets the origin pull protocol to the one given
 func (c *Configuration) SetOriginPullProtocol(protocol string) error {
-	if !utilities.SliceContainsString(protocol, validProtocols) {
-		return fmt.Errorf("%s is not a valid protocol. Must be one of (%s)", protocol, strings.Join(validProtocols, ","))
+	if !utilities.SliceContainsString(protocol, ValidPullProtocols) {
+		return fmt.Errorf("%s is not a valid protocol. Must be one of (%s)", protocol, strings.Join(ValidPullProtocols, ","))
 	}
 	c.OriginPullProtocol.Protocol = protocol
 	return nil
