@@ -12,6 +12,9 @@ import (
 // ValidPullProtocols are for matching against user input on pull protocol
 var ValidPullProtocols = []string{"http", "https", "match"}
 
+// ValidExpirePolicies are for matching against user input on expire policies
+var ValidExpirePolicies = []string{"CACHE_CONTROL", "INGEST", "LAST_MODIFY", "NEVER_EXPIRE", "DO_NOT_CACHE"}
+
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
@@ -152,7 +155,7 @@ type OriginPullProtocol struct {
 
 // OriginPullPolicy encapsulates origib pull policy settings
 type OriginPullPolicy struct {
-	ExpirePolicy                   string `json:"expirePolicy"`
+	ExpirePolicy                   string `json:"expirePolicy" validate:"oneof=CACHE_CONTROL INGEST LAST_MODIFY NEVER_EXPIRE DO_NOT_CACHE"`
 	ExpireSeconds                  int    `json:"expireSeconds"`
 	ForceBypassCache               bool   `json:"forceBypassCache"`
 	HonorMustRevalidate            bool   `json:"honorMustRevalidate"`
@@ -204,8 +207,9 @@ type CacheKeyModification struct {
 
 // Compression GZIP mime configuration
 type Compression struct {
-	GZIP string `json:"gzip"`
-	Mime string `json:"mime"`
+	GZIP  string `json:"gzip"`
+	Level int    `json:"level,string"`
+	Mime  string `json:"mime"`
 }
 
 // StaticHeader Headers to arbitrarily add
@@ -226,8 +230,9 @@ type AccessLogs struct {
 
 // OriginPullHost contains the origin ID for this scope configuration
 type OriginPullHost struct {
-	Primary   int `json:"primary"`
-	Secondary int `json:"secondary"`
+	Primary   int    `json:"primary"`
+	Secondary int    `json:"secondary"`
+	Path      string `json:"path"`
 }
 
 // ConfigurationScope is the scope name

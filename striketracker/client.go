@@ -132,7 +132,7 @@ func (c *Client) NewRequestContext(ctx context.Context, method HTTPMethod, URL s
 	return req, nil
 }
 
-// AddRequestParamter is a helper for adding query string params to a request
+// AddRequestParameter is a helper for adding query string params to a request
 func AddRequestParameter(req *http.Request, key string, val string) *http.Request {
 	q := req.URL.Query()
 	q.Add(key, val)
