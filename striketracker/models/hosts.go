@@ -53,6 +53,7 @@ func NewDefaultHost(name string) *Host {
 
 // HostList is a list of hosts
 type HostList struct {
+	Response
 	List []*Host `json:"list"`
 }
 

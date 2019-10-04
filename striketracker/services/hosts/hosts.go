@@ -189,5 +189,25 @@ func (s *Service) Get(ctx context.Context, accountHash string, hostHash string) 
 
 // List Hosts
 func (s *Service) List(ctx context.Context, accountHash string, recursive bool) (*models.HostList, error) {
-	return nil, nil
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, s.Endpoint.Format(accountHash), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var hostList *models.HostList
+
+	resp, err := s.client.DoRequest(req, hostList)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := hostList.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+	return hostList, nil
 }
