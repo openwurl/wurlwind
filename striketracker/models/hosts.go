@@ -59,11 +59,21 @@ type HostList struct {
 
 // Scope defines a delivery scope
 type Scope struct {
+	Response
 	ID          int    `json:"id"`
 	Platform    string `json:"platform"`
 	Path        string `json:"path"`
 	CreatedDate string `json:"createdDate"`
 	UpdatedDate string `json:"updatedDate"`
+}
+
+// Validate validates the struct data
+func (s *Scope) Validate() error {
+	v := validation.NewValidator(validator.New())
+	if err := v.Validate(s); err != nil {
+		return err
+	}
+	return nil
 }
 
 // CloneHost is a type used when cloning an existing host

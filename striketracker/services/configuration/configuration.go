@@ -3,10 +3,12 @@ package configuration
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
+	"github.com/openwurl/wurlwind/striketracker/services"
 )
 
 /*
@@ -46,11 +48,37 @@ func New(c *striketracker.Client) *Service {
 //
 // POST /api/v1/accounts/{account_hash}/hosts/{host_hash}/configuration/scopes
 //
-// Accepts models.Scope
+// Accepts models.Scope and hostHash
 //
 // Returns an updated models.Scope
-func (s *Service) Create(ctx context.Context, accountHash string, scope *models.Scope) (*models.Scope, error) {
-	return nil, nil
+func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.Scope) (*models.Scope, error) {
+	if err := scope.Validate(); err != nil {
+		return nil, err
+	}
+
+	endpoint := fmt.Sprintf("%s/%s/configuration/scopes", s.Endpoint.Format(accountHash), hostHash)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, endpoint, scope)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, scope)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := scope.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return scope, nil
 }
 
 // Update a scope's configuration
@@ -60,8 +88,34 @@ func (s *Service) Create(ctx context.Context, accountHash string, scope *models.
 // Accepts models.Configuration
 //
 // Returns an updated models.Configuration
-func (s *Service) Update(ctx context.Context, accountHash string, ScopeID int, config *models.Configuration) (*models.Configuration, error) {
-	return nil, nil
+func (s *Service) Update(ctx context.Context, accountHash string, scopeID int, config *models.Configuration) (*models.Configuration, error) {
+	if err := config.Validate(); err != nil {
+		return nil, err
+	}
+
+	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.POST, endpoint, config)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, config)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := config.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return config, nil
 }
 
 // Get a scope's configuration
@@ -72,16 +126,60 @@ func (s *Service) Update(ctx context.Context, accountHash string, ScopeID int, c
 //
 // Returns *models.Scope
 func (s *Service) Get(ctx context.Context, accountHash string, scopeID int) (*models.Configuration, error) {
-	return nil, nil
+	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	scopeConfig := &models.Configuration{}
+
+	resp, err := s.client.DoRequest(req, scopeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+
+		// Catch any embedded errors in the body and add them to our response
+		// This is difficult to make more generic and needs copied since
+		// Response is inherited and not first class in the struct
+		if respErr := scopeConfig.Error(); respErr != nil {
+			err = respErr
+		}
+
+		return nil, err
+	}
+
+	return scopeConfig, nil
 }
 
 // Delete a configuration scope
 //
-// DELETE /api/v1/accounts/{account_hash}/hosts/{host_hash}/configuration/{scope_id}
+// DELETE /api/v1/accounts/{account_hash}/hosts/{host_hash}/configuration/{scope_id}?force={forceDelete}
 //
 // Accepts ScopeID and forceDelete
 //
 // Returns error
 func (s *Service) Delete(ctx context.Context, accountHash string, scopeID int, forceDelete bool) error {
+	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
+	if err != nil {
+		return err
+	}
+
+	req = striketracker.AddRequestParameter(req, "force", fmt.Sprintf("%t", forceDelete))
+
+	resp, err := s.client.DoRequest(req, nil)
+	if err != nil {
+		return err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		return err
+	}
+
 	return nil
 }
