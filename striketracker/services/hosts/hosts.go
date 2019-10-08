@@ -115,9 +115,38 @@ func (s *Service) Clone(ctx context.Context, accountHash string, hostHash string
 }
 
 // Update a host
+//
+// PUT /api/v1/accounts/{account_hash}/hosts/{host_hash}
+//
+// Accepts HostHash & Host model
+//
+// Returns updated host model
 func (s *Service) Update(ctx context.Context, accountHash string, hostHash string, host *models.Host) (*models.Host, error) {
 
 	if err := host.Validate(); err != nil {
+		return nil, err
+	}
+
+	// TODO: Should do a read then a right to left merge of models maybe
+
+	endpoint := fmt.Sprintf("%s/%s", s.Endpoint.Format(accountHash), hostHash)
+
+	req, err := s.client.NewRequestContext(ctx, striketracker.PUT, endpoint, host)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := s.client.DoRequest(req, host)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = services.ValidateResponse(resp); err != nil {
+		// Catch any embedded errors in the body and add them to our response
+		if respErr := host.Error(); respErr != nil {
+			err = respErr
+		}
+
 		return nil, err
 	}
 

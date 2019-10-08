@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/imdario/mergo"
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -48,13 +50,15 @@ func New(c *striketracker.Client) *Service {
 //
 // POST /api/v1/accounts/{account_hash}/hosts/{host_hash}/configuration/scopes
 //
-// Accepts models.Scope and hostHash
+// Accepts models.Configuration and hostHash
 //
-// Returns an updated models.Scope
-func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.Scope) (*models.Scope, error) {
+// Returns an updated models.Configuration
+func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.Configuration) (*models.Configuration, error) {
 	if err := scope.Validate(); err != nil {
 		return nil, err
 	}
+
+	spew.Dump(scope)
 
 	endpoint := fmt.Sprintf("%s/%s/configuration/scopes", s.Endpoint.Format(accountHash), hostHash)
 
@@ -88,14 +92,25 @@ func (s *Service) Create(ctx context.Context, accountHash string, hostHash strin
 // Accepts models.Configuration
 //
 // Returns an updated models.Configuration
-func (s *Service) Update(ctx context.Context, accountHash string, scopeID int, config *models.Configuration) (*models.Configuration, error) {
+func (s *Service) Update(ctx context.Context, accountHash string, hostHash string, scopeID int, config *models.Configuration) (*models.Configuration, error) {
 	if err := config.Validate(); err != nil {
 		return nil, err
 	}
 
+	// Fetch upstream configuration then merge our changes to it
+	// Changes should be explicit
+	origin, err := s.Get(ctx, accountHash, hostHash, scopeID)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get upstream configuration to merge: %v", err)
+	}
+	err = mergo.Merge(origin, config)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to merge upstream and given configuration")
+	}
+
 	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
 
-	req, err := s.client.NewRequestContext(ctx, striketracker.POST, endpoint, config)
+	req, err := s.client.NewRequestContext(ctx, striketracker.PUT, endpoint, config)
 	if err != nil {
 		return nil, err
 	}
@@ -124,9 +139,9 @@ func (s *Service) Update(ctx context.Context, accountHash string, scopeID int, c
 //
 // Accepts scope id
 //
-// Returns *models.Scope
-func (s *Service) Get(ctx context.Context, accountHash string, scopeID int) (*models.Configuration, error) {
-	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
+// Returns *models.Configuration
+func (s *Service) Get(ctx context.Context, accountHash string, hostHash string, scopeID int) (*models.Configuration, error) {
+	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), hostHash, scopeID)
 
 	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
 	if err != nil {
@@ -152,6 +167,10 @@ func (s *Service) Get(ctx context.Context, accountHash string, scopeID int) (*mo
 		return nil, err
 	}
 
+	if &scopeConfig.Scope == nil {
+		return nil, fmt.Errorf("Scope payload did not flesh")
+	}
+
 	return scopeConfig, nil
 }
 
@@ -162,8 +181,8 @@ func (s *Service) Get(ctx context.Context, accountHash string, scopeID int) (*mo
 // Accepts ScopeID and forceDelete
 //
 // Returns error
-func (s *Service) Delete(ctx context.Context, accountHash string, scopeID int, forceDelete bool) error {
-	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
+func (s *Service) Delete(ctx context.Context, accountHash string, hostHash string, scopeID int, forceDelete bool) error {
+	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), hostHash, scopeID)
 
 	req, err := s.client.NewRequestContext(ctx, striketracker.GET, endpoint, nil)
 	if err != nil {

@@ -33,7 +33,7 @@ type Configuration struct {
 	HTTPMethods                 *HTTPMethods                 `json:"httpMethods"`
 	AccessLogs                  *AccessLogs                  `json:"accessLogs"`
 	OriginPullHost              *OriginPullHost              `json:"originPullHost"`
-	Scope                       *ConfigurationScope          `json:"scope"`
+	Scope
 }
 
 // Validate validates the struct data
@@ -80,9 +80,6 @@ func NewDefaultConfiguration() *Configuration {
 			Enabled: true,
 		},
 		OriginPullHost: &OriginPullHost{},
-		Scope: &ConfigurationScope{
-			Name: "Default",
-		},
 	}
 	c.OriginPullPolicy = append(c.OriginPullPolicy, &OriginPullPolicy{
 		ExpirePolicy:                   "CACHE_CONTROL",

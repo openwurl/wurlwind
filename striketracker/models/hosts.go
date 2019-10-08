@@ -61,10 +61,31 @@ type HostList struct {
 type Scope struct {
 	Response
 	ID          int    `json:"id"`
-	Platform    string `json:"platform"`
-	Path        string `json:"path"`
+	Name        string `json:"name"`
+	Platform    string `json:"platform" validate:"required"`
+	Path        string `json:"path" validate:"required"`
 	CreatedDate string `json:"createdDate"`
 	UpdatedDate string `json:"updatedDate"`
+}
+
+// SetName sets the scope name of the configuration
+func (s *Scope) SetName(name string) {
+	s.Name = name
+}
+
+// GetName gets the scope name of the configuration
+func (s *Scope) GetName() string {
+	return s.Name
+}
+
+// SetPlatform sets the platform type of the configuration
+func (s *Scope) SetPlatform(platform string) {
+	s.Platform = platform
+}
+
+// SetPath sets the scope path of the configuration
+func (s *Scope) SetPath(path string) {
+	s.Path = path
 }
 
 // Validate validates the struct data
