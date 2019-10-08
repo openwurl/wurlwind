@@ -33,7 +33,7 @@ type Configuration struct {
 	HTTPMethods                 *HTTPMethods                 `json:"httpMethods"`
 	AccessLogs                  *AccessLogs                  `json:"accessLogs"`
 	OriginPullHost              *OriginPullHost              `json:"originPullHost"`
-	Scope
+	*Scope
 }
 
 // Validate validates the struct data
