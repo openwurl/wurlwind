@@ -33,11 +33,44 @@ type Configuration struct {
 	HTTPMethods                 *HTTPMethods                 `json:"httpMethods"`
 	AccessLogs                  *AccessLogs                  `json:"accessLogs"`
 	OriginPullHost              *OriginPullHost              `json:"originPullHost"`
-	*Scope
+	*Scope                      `json:"scope"`
 }
 
 // Validate validates the struct data
 func (c *Configuration) Validate() error {
+	v := validation.NewValidator(validator.New())
+	if err := v.Validate(c); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ConfigurationCreate because POST a new config is a unicorn due to bad API design
+type ConfigurationCreate struct {
+	Response
+	Hostname                    []*ConfigurationHostname     `json:"hostname"`
+	OriginPullLogs              *OriginPullLogs              `json:"originPullLogs"`
+	OriginPullProtocol          *OriginPullProtocol          `json:"originPullProtocol"`
+	OriginPullPolicy            []*OriginPullPolicy          `json:"originPullPolicy"`
+	FileSegmentation            *FileSegmentation            `json:"fileSegmentation"`
+	GzipOriginPull              *GzipOriginPull              `json:"gzipOriginPull"`
+	OriginPersistentConnections *OriginPersistentConnections `json:"originPersistentConnections"`
+	OriginPull                  *OriginPull                  `json:"originPull"`
+	CacheControl                []*CacheControl              `json:"cacheControl"`
+	CacheKeyModification        *CacheKeyModification        `json:"cacheKeyModification"`
+	Compression                 *Compression                 `json:"compression"`
+	StaticHeader                []*StaticHeader              `json:"staticHeader"`
+	HTTPMethods                 *HTTPMethods                 `json:"httpMethods"`
+	AccessLogs                  *AccessLogs                  `json:"accessLogs"`
+	OriginPullHost              *OriginPullHost              `json:"originPullHost"`
+	Name                        string                       `json:"name"`
+	Platform                    string                       `json:"platform" validate:"required"`
+	Path                        string                       `json:"path" validate:"required"`
+	ID                          int                          `json:"id"`
+}
+
+// Validate validates the struct data
+func (c *ConfigurationCreate) Validate() error {
 	v := validation.NewValidator(validator.New())
 	if err := v.Validate(c); err != nil {
 		return err

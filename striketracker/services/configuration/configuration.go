@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/imdario/mergo"
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
@@ -53,12 +52,10 @@ func New(c *striketracker.Client) *Service {
 // Accepts models.Configuration and hostHash
 //
 // Returns an updated models.Configuration
-func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.Configuration) (*models.Configuration, error) {
+func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.ConfigurationCreate) (*models.ConfigurationCreate, error) {
 	if err := scope.Validate(); err != nil {
 		return nil, err
 	}
-
-	spew.Dump(scope)
 
 	endpoint := fmt.Sprintf("%s/%s/configuration/scopes", s.Endpoint.Format(accountHash), hostHash)
 
@@ -79,7 +76,7 @@ func (s *Service) Create(ctx context.Context, accountHash string, hostHash strin
 			err = respErr
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("%v: %v", scope.Platform, err.Error())
 	}
 
 	return scope, nil
@@ -108,7 +105,7 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 		return nil, fmt.Errorf("Failed to merge upstream and given configuration")
 	}
 
-	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), accountHash, scopeID)
+	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), hostHash, scopeID)
 
 	req, err := s.client.NewRequestContext(ctx, striketracker.PUT, endpoint, config)
 	if err != nil {
@@ -127,7 +124,7 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 			err = respErr
 		}
 
-		return nil, err
+		return nil, fmt.Errorf("Update failed. Tried %s (%v)", endpoint, err)
 	}
 
 	return config, nil
