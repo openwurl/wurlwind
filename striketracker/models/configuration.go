@@ -185,6 +185,7 @@ type OriginPullProtocol struct {
 
 // OriginPullPolicy encapsulates origib pull policy settings
 type OriginPullPolicy struct {
+	Enabled                        bool   `json:"enabled"`
 	ExpirePolicy                   string `json:"expirePolicy" validate:"oneof=CACHE_CONTROL INGEST LAST_MODIFY NEVER_EXPIRE DO_NOT_CACHE"`
 	ExpireSeconds                  int    `json:"expireSeconds"`
 	ForceBypassCache               bool   `json:"forceBypassCache"`
@@ -197,6 +198,12 @@ type OriginPullPolicy struct {
 	MustRevalidateToNoCache        bool   `json:"mustRevalidateToNoCache"`
 	NoCacheBehavior                string `json:"noCacheBehavior"`
 	UpdateHTTPHeadersOn304Response bool   `json:"updateHttpHeadersOn304Response"`
+	DefaultCacheBehavior           string `json:"defaultCacheBehavior"` // Default behaviour when the policy is "Cache Control" and the "Cache-Control" header is missing.
+	MaxAgeZeroToNoCache            bool   `json:"maxAgeZeroToNoCache"`
+	ContentTypeFilter              string `json:"contentTypeFilter"`
+	HeaderFilter                   string `json:"headerFilter"`
+	MethodFilter                   string `json:"methodFilter"`
+	PathFilter                     string `json:"pathFilter"`
 }
 
 // ConfigurationHostname ...
