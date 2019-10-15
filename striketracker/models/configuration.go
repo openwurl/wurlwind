@@ -1,10 +1,6 @@
 package models
 
 import (
-	"fmt"
-	"strings"
-
-	"github.com/openwurl/wurlwind/pkg/utilities"
 	"github.com/openwurl/wurlwind/pkg/validation"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -15,28 +11,31 @@ var ValidPullProtocols = []string{"http", "https", "match"}
 // ValidExpirePolicies are for matching against user input on expire policies
 var ValidExpirePolicies = []string{"CACHE_CONTROL", "INGEST", "LAST_MODIFY", "NEVER_EXPIRE", "DO_NOT_CACHE"}
 
+// ValidRedirectActions are for matching against user input on redirect actions
+var ValidRedirectActions = []string{"proxy", "follow"}
+
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
-	Hostname                    []*ConfigurationHostname      `json:"hostname"`
-	OriginPullLogs              *OriginPullLogs               `json:"originPullLogs"`
-	OriginPullProtocol          *OriginPullProtocol           `json:"originPullProtocol"`
-	OriginPullPolicy            []*OriginPullPolicy           `json:"originPullPolicy"`
+	Hostname                    []*ConfigurationHostname      `json:"hostname"`           // done
+	OriginPullLogs              *OriginPullLogs               `json:"originPullLogs"`     // done logsSchema
+	OriginPullProtocol          *OriginPullProtocol           `json:"originPullProtocol"` // done originSchema
+	OriginPullPolicy            []*OriginPullPolicy           `json:"originPullPolicy"`   // done
 	FileSegmentation            *FileSegmentation             `json:"fileSegmentation"`
-	GzipOriginPull              *GzipOriginPull               `json:"gzipOriginPull"`
-	OriginPersistentConnections *OriginPersistentConnections  `json:"originPersistentConnections"`
-	OriginPull                  *OriginPull                   `json:"originPull"`
+	GzipOriginPull              *GzipOriginPull               `json:"gzipOriginPull"`              // done originSchema
+	OriginPersistentConnections *OriginPersistentConnections  `json:"originPersistentConnections"` // done originSchema
+	OriginPull                  *OriginPull                   `json:"originPull"`                  // done originSchema
 	CacheControl                []*CacheControl               `json:"cacheControl"`
 	CacheKeyModification        *CacheKeyModification         `json:"cacheKeyModification"`
 	Compression                 *Compression                  `json:"compression"`
 	StaticHeader                []*StaticHeader               `json:"staticHeader"`
 	HTTPMethods                 *HTTPMethods                  `json:"httpMethods"`
-	AccessLogs                  *AccessLogs                   `json:"accessLogs"`
-	OriginPullHost              *OriginPullHost               `json:"originPullHost"`
-	OriginRequestModification   []*OriginRequestModification  `json:"originRequestModification,omitempty"`
-	OriginResponseModification  []*OriginResponseModification `json:"originResponseModification,omitempty"`
-	ClientRequestModification   []*ClientRequestModification  `json:"clientRequestModification,omitempty"`
-	ClientResponseModification  []*ClientResponseModification `json:"clientResponseModification,omitempty"`
+	AccessLogs                  *AccessLogs                   `json:"accessLogs"`                           // done logsSchema
+	OriginPullHost              *OriginPullHost               `json:"originPullHost"`                       // done originSchema
+	OriginRequestModification   []*OriginRequestModification  `json:"originRequestModification,omitempty"`  // done
+	OriginResponseModification  []*OriginResponseModification `json:"originResponseModification,omitempty"` // done
+	ClientRequestModification   []*ClientRequestModification  `json:"clientRequestModification,omitempty"`  // done
+	ClientResponseModification  []*ClientResponseModification `json:"clientResponseModification,omitempty"` // done
 	*Scope                      `json:"scope"`
 }
 
@@ -49,130 +48,37 @@ func (c *Configuration) Validate() error {
 	return nil
 }
 
-// BuildHostScopeInterface returns scope details
-// for the host in a terraform compatible interface
-func (c *Configuration) BuildHostScopeInterface() map[string]interface{} {
-	scopeList := make(map[string]interface{})
-	scopeList["id"] = string(c.ID)
-	scopeList["platform"] = c.Platform
-	scopeList["path"] = c.Path
-	return scopeList
-}
+// BuildOriginPullPoliciesList returns a slice of policies from tf state
+func BuildOriginPullPoliciesList(tfPullPolicies *[]interface{}) []*OriginPullPolicy {
+	policylist := []*OriginPullPolicy{}
+	for _, policy := range *tfPullPolicies {
+		thisMap := policy.(map[string]interface{})
 
-// BuildOriginPullPoliciesInterface returns a tf-compatible interface from the model
-func (c *Configuration) BuildOriginPullPoliciesInterface() []interface{} {
-	policies := c.OriginPullPolicy
-	var policyList []interface{}
-	for _, policy := range policies {
-		thisPolicy := make(map[string]interface{})
-		thisPolicy["enabled"] = policy.Enabled
-		thisPolicy["expire_seconds"] = policy.ExpireSeconds
-		thisPolicy["force_bypass_cache"] = policy.ForceBypassCache
-		thisPolicy["honor_must_revalidate"] = policy.HonorMustRevalidate
-		thisPolicy["honor_no_cache"] = policy.HonorNoCache
-		thisPolicy["honor_no_store"] = policy.HonorNoStore
-		thisPolicy["honor_private"] = policy.HonorPrivate
-		thisPolicy["honor_smax_age"] = policy.HonorSMaxAge
-		thisPolicy["http_headers"] = policy.HTTPHeaders
-		thisPolicy["must_revalidate_to_no_cache"] = policy.MustRevalidateToNoCache
-		thisPolicy["no_cache_behavior"] = policy.NoCacheBehavior
-		thisPolicy["update_http_headers_on_304_response"] = policy.UpdateHTTPHeadersOn304Response
-		thisPolicy["default_cache_behavior"] = policy.DefaultCacheBehavior
-		thisPolicy["max_age_zero_to_no_cache"] = policy.MaxAgeZeroToNoCache
-		thisPolicy["content_type_filter"] = policy.ContentTypeFilter
-		thisPolicy["header_filter"] = policy.HeaderFilter
-		thisPolicy["method_filter"] = policy.MethodFilter
-		thisPolicy["path_filter"] = policy.PathFilter
-		policyList = append(policyList, thisPolicy)
-	}
-	return policyList
-}
-
-// ClientResponseMap returns a tf interface slice of client request mods
-func (c *Configuration) ClientResponseMap() []interface{} {
-	thisMap := make([]interface{}, len(c.ClientResponseModification))
-	for _, mod := range c.ClientResponseModification {
-		thisMap = append(thisMap, mod.AsMap())
-	}
-	return thisMap
-}
-
-// ClientRequestMap returns a tf interface slice of client request mods
-func (c *Configuration) ClientRequestMap() []interface{} {
-	thisMap := make([]interface{}, len(c.ClientRequestModification))
-	for _, mod := range c.ClientRequestModification {
-		thisMap = append(thisMap, mod.AsMap())
-	}
-	return thisMap
-}
-
-// OriginRequestMap returns a tf interface slice of client request mods
-func (c *Configuration) OriginRequestMap() []interface{} {
-	thisMap := make([]interface{}, len(c.OriginRequestModification))
-	for _, mod := range c.OriginRequestModification {
-		thisMap = append(thisMap, mod.AsMap())
-	}
-	return thisMap
-}
-
-// OriginResponseMap returns a tf interface slice of client request mods
-func (c *Configuration) OriginResponseMap() []interface{} {
-	thisMap := make([]interface{}, len(c.OriginResponseModification))
-	for _, mod := range c.OriginResponseModification {
-		thisMap = append(thisMap, mod.AsMap())
-	}
-	return thisMap
-}
-
-// HostnamesAsList returns an list of strings in an interface for tf state
-func (c *Configuration) HostnamesAsList() []interface{} {
-	ret := make([]interface{}, len(c.Hostname))
-	for _, host := range c.Hostname {
-		ret = append(ret, host.Domain)
-	}
-	return ret
-}
-
-// HostnamesAsStringSlice returns a slice of strings for tf state
-func (c *Configuration) HostnamesAsStringSlice() []string {
-	hostnames := make([]string, len(c.Hostname))
-	for _, hostname := range c.Hostname {
-		if hostname.Domain == "" {
-			// Skip blank fields
-			continue
+		newPolicy := &OriginPullPolicy{
+			Enabled:                        thisMap["enabled"].(bool),
+			ExpirePolicy:                   thisMap["expire_policy"].(string),
+			ExpireSeconds:                  thisMap["expire_seconds"].(int),
+			ForceBypassCache:               thisMap["force_bypass_cache"].(bool),
+			HonorMustRevalidate:            thisMap["honor_must_revalidate"].(bool),
+			HonorNoCache:                   thisMap["honor_no_cache"].(bool),
+			HonorNoStore:                   thisMap["honor_no_store"].(bool),
+			HonorPrivate:                   thisMap["honor_private"].(bool),
+			HonorSMaxAge:                   thisMap["honor_smax_age"].(bool),
+			HTTPHeaders:                    thisMap["http_headers"].(string),
+			MustRevalidateToNoCache:        thisMap["must_revalidate_to_no_cache"].(bool),
+			NoCacheBehavior:                thisMap["no_cache_behavior"].(string),
+			UpdateHTTPHeadersOn304Response: thisMap["update_http_headers_on_304_response"].(bool),
+			DefaultCacheBehavior:           thisMap["default_cache_behavior"].(string),
+			MaxAgeZeroToNoCache:            thisMap["max_age_zero_to_no_cache"].(bool),
+			ContentTypeFilter:              thisMap["content_type_filter"].(string),
+			HeaderFilter:                   thisMap["header_filter"].(string),
+			MethodFilter:                   thisMap["method_filter"].(string),
+			PathFilter:                     thisMap["path_filter"].(string),
 		}
-		hostnames = append(hostnames, hostname.Domain)
+		policylist = append(policylist, newPolicy)
 	}
-	return hostnames
-}
 
-// ActionableHostnamesAsStringSlice returns a pared down slice of strings
-// only containing those set by the user
-func (c *Configuration) ActionableHostnamesAsStringSlice() []string {
-	hostnames := make([]string, len(c.Hostname))
-	for _, hostname := range c.Hostname {
-		if hostname.Domain == "" || strings.Contains(hostname.Domain, "hwcdn.net") {
-			// Skip blank fields
-			continue
-		}
-		hostnames = append(hostnames, hostname.Domain)
-	}
-	return hostnames
-}
-
-// BuildOriginInterface returns a tf state
-// compatible reflection of origin pull host and other details
-func (c *Configuration) BuildOriginInterface() map[string]interface{} {
-	originMap := make(map[string]interface{})
-	if c.OriginPullHost != nil {
-		originMap["primary"] = c.OriginPullHost.Primary
-		originMap["secondary"] = c.OriginPullHost.Secondary
-		originMap["path"] = c.OriginPullHost.Path
-	}
-	originMap["origin_pull_protocol"] = c.OriginPullProtocol.Protocol
-	originMap["redirect_action"] = c.OriginPull.RedirectAction
-
-	return originMap
+	return policylist
 }
 
 // ConfigurationCreate because POST a new config is a unicorn due to bad API design
@@ -267,37 +173,6 @@ func NewDefaultConfiguration() *Configuration {
 	})
 	return c
 }
-
-/*
-	Configuration Modification
-*/
-
-// SetOriginPullLogs enables or disables origin pull logging
-func (c *Configuration) SetOriginPullLogs(enabled bool) {
-	c.OriginPullLogs.Enabled = enabled
-}
-
-// GetOriginPullLogs returns the origin pull log enabled setting
-func (c *Configuration) GetOriginPullLogs() bool {
-	return c.OriginPullLogs.Enabled
-}
-
-// SetOriginPullProtocol sets the origin pull protocol to the one given
-func (c *Configuration) SetOriginPullProtocol(protocol string) error {
-	if !utilities.SliceContainsString(protocol, ValidPullProtocols) {
-		return fmt.Errorf("%s is not a valid protocol. Must be one of (%s)", protocol, strings.Join(ValidPullProtocols, ","))
-	}
-	c.OriginPullProtocol.Protocol = protocol
-	return nil
-}
-
-// SetFileSegmentation
-
-// SetGzipOriginPull
-
-// SetOriginPersistentConnections
-
-// SetOriginPull
 
 /*
 	Sub structures
@@ -536,8 +411,30 @@ type OriginPull struct {
 
 // CacheControl ...
 type CacheControl struct {
-	MaxAge            int  `json:"maxAge"`
-	SynchronizeMaxAge bool `json:"synchronizeMaxAge"`
+	Enabled           bool   `json:"enabled"`
+	MustRevalidate    bool   `json:"mustRevalidate"`
+	MaxAge            int    `json:"maxAge"`
+	SynchronizeMaxAge bool   `json:"synchronizeMaxAge"`
+	Override          string `json:"override"`
+}
+
+// NewCacheControlsFromState returns a slice of cache controls from tf state
+func NewCacheControlsFromState(state []interface{}) []*CacheControl {
+	cc := make([]*CacheControl, len(state))
+	if len(state) > 0 {
+		for _, ccState := range state {
+			ccStateCast := ccState.(map[string]interface{})
+			thisCC := &CacheControl{
+				Enabled:           ccStateCast["enabled"].(bool),
+				MustRevalidate:    ccStateCast["must_revalidate"].(bool),
+				MaxAge:            ccStateCast["max_age"].(int),
+				SynchronizeMaxAge: ccStateCast["synchronize_max_age"].(bool),
+				Override:          ccStateCast["override"].(string),
+			}
+			cc = append(cc, thisCC)
+		}
+	}
+	return cc
 }
 
 // CacheKeyModification ...
