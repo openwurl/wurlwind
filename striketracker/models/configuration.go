@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/openwurl/wurlwind/pkg/validation"
@@ -19,25 +20,25 @@ var ValidRedirectActions = []string{"proxy", "follow"}
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
-	Hostname                    []*ConfigurationHostname      `json:"hostname"`                    // done
-	OriginPullLogs              *OriginPullLogs               `json:"originPullLogs"`              // done logsSchema
-	OriginPullProtocol          *OriginPullProtocol           `json:"originPullProtocol"`          // done originSchema
-	OriginPullPolicy            []*OriginPullPolicy           `json:"originPullPolicy"`            // done
-	FileSegmentation            *FileSegmentation             `json:"fileSegmentation"`            // done originSchema
-	GzipOriginPull              *GzipOriginPull               `json:"gzipOriginPull"`              // done originSchema
-	OriginPersistentConnections *OriginPersistentConnections  `json:"originPersistentConnections"` // done originSchema
-	OriginPull                  *OriginPull                   `json:"originPull"`                  // done originSchema
-	CacheControl                []*CacheControl               `json:"cacheControl"`                // done
+	Hostname                    []*ConfigurationHostname      `json:"hostname"`
+	OriginPullLogs              *OriginPullLogs               `json:"originPullLogs"`
+	OriginPullProtocol          *OriginPullProtocol           `json:"originPullProtocol"`
+	OriginPullPolicy            []*OriginPullPolicy           `json:"originPullPolicy"`
+	FileSegmentation            *FileSegmentation             `json:"fileSegmentation"`
+	GzipOriginPull              *GzipOriginPull               `json:"gzipOriginPull"`
+	OriginPersistentConnections *OriginPersistentConnections  `json:"originPersistentConnections"`
+	OriginPull                  *OriginPull                   `json:"originPull"`
+	CacheControl                []*CacheControl               `json:"cacheControl"`
 	CacheKeyModification        *CacheKeyModification         `json:"cacheKeyModification"`
 	Compression                 *Compression                  `json:"compression"`
 	StaticHeader                []*StaticHeader               `json:"staticHeader"`
 	HTTPMethods                 *HTTPMethods                  `json:"httpMethods"`
-	AccessLogs                  *AccessLogs                   `json:"accessLogs"`                           // done logsSchema
-	OriginPullHost              *OriginPullHost               `json:"originPullHost"`                       // done originSchema
-	OriginRequestModification   []*OriginRequestModification  `json:"originRequestModification,omitempty"`  // done
-	OriginResponseModification  []*OriginResponseModification `json:"originResponseModification,omitempty"` // done
-	ClientRequestModification   []*ClientRequestModification  `json:"clientRequestModification,omitempty"`  // done
-	ClientResponseModification  []*ClientResponseModification `json:"clientResponseModification,omitempty"` // done
+	AccessLogs                  *AccessLogs                   `json:"accessLogs"`
+	OriginPullHost              *OriginPullHost               `json:"originPullHost"`
+	OriginRequestModification   []*OriginRequestModification  `json:"originRequestModification,omitempty"`
+	OriginResponseModification  []*OriginResponseModification `json:"originResponseModification,omitempty"`
+	ClientRequestModification   []*ClientRequestModification  `json:"clientRequestModification,omitempty"`
+	ClientResponseModification  []*ClientResponseModification `json:"clientResponseModification,omitempty"`
 	*Scope                      `json:"scope"`
 }
 
@@ -48,6 +49,132 @@ func (c *Configuration) Validate() error {
 		return err
 	}
 	return nil
+}
+
+// ConfigurationFromScope returns a baseline empty configuration from terraform scope
+func ConfigurationFromScope(scope map[string]interface{}) (*Configuration, error) {
+	c := &Configuration{
+		Scope: &Scope{},
+	}
+
+	if scope["platform"] != "" {
+		c.Scope.Platform = scope["platform"].(string)
+	} else {
+		c.Scope.Platform = "CDS"
+	}
+
+	if scope["name"] != "" {
+		c.Scope.Name = scope["name"].(string)
+	} else {
+		return nil, fmt.Errorf("Scope payload did not include name")
+	}
+
+	if scope["path"] != "" {
+		c.Scope.Path = scope["path"].(string)
+	} else {
+		return nil, fmt.Errorf("Scope payload did not include path")
+	}
+
+	return c, nil
+}
+
+// TODO: BuildHostnamesList returns the configurations hostnames as a tf state list
+
+// TODO: BuildCleanHostnamesList returns the configuration hostnames as a tf state list
+// with empty and default values removed
+
+// IngestHostnames adds hostnames to the model from terraform state
+func (c *Configuration) IngestHostnames(list []interface{}) {
+	hnl := make([]*ConfigurationHostname, len(list))
+	if len(list) > 0 {
+		for _, hostname := range list {
+			thisHN := &ConfigurationHostname{
+				Domain: hostname.(string),
+			}
+			hnl = append(hnl, thisHN)
+		}
+	}
+	c.Hostname = hnl
+}
+
+// BuildDeliveryMap assembles compression, httpmethods and staticheader into tf state map
+func (c *Configuration) BuildDeliveryMap() map[string]interface{} {
+	// Delivery contains Compression, StaticHeader and HTTPMethods
+	dm := make(map[string]interface{})
+	dm["compression"] = c.Compression.BuildMap()
+	dm["http_methods"] = c.HTTPMethods.BuildMap()
+	headerList := make([]interface{}, len(c.StaticHeader))
+	for _, header := range c.StaticHeader {
+		headerList = append(headerList, header.BuildMap())
+	}
+	dm["static_header"] = headerList
+	return dm
+}
+
+// IngestDeliveryMap adds Compression, HTTPMethods, and StaticHeader from tf state
+func (c *Configuration) IngestDeliveryMap(state map[string]interface{}) {
+	compressionMap := state["compression"].(map[string]interface{})
+	c.Compression = &Compression{
+		Enabled: compressionMap["enabled"].(bool),
+		GZIP:    compressionMap["gzip"].(string),
+		Level:   compressionMap["level"].(int),
+		Mime:    compressionMap["mime"].(string),
+	}
+
+	methodMap := state["http_methods"].(map[string]interface{})
+	c.HTTPMethods = &HTTPMethods{
+		Enabled:  methodMap["enabled"].(bool),
+		PassThru: methodMap["passthru"].(string),
+	}
+
+	headerMap := state["static_header"].([]interface{})
+	c.StaticHeader = make([]*StaticHeader, len(headerMap))
+
+	for _, mapIface := range headerMap {
+		thisHeader := mapIface.(map[string]interface{})
+		h := &StaticHeader{
+			Enabled:       thisHeader["enabled"].(bool),
+			HTTP:          thisHeader["http"].(string),
+			ClientRequest: thisHeader["client_request"].(string),
+			OriginPull:    thisHeader["origin_pull"].(string),
+		}
+		c.StaticHeader = append(c.StaticHeader, h)
+	}
+
+}
+
+// BuildCacheKeyMap assembles CacheKeyModification into a tf state map
+func (c *Configuration) BuildCacheKeyMap() map[string]interface{} {
+	ckm := make(map[string]interface{})
+	ckm["enabled"] = c.CacheKeyModification.Enabled
+	ckm["case_insensitive_cache"] = c.CacheKeyModification.NormalizeKeyPathToLowerCase
+	return ckm
+}
+
+// IngestCacheKeyMap adds CacheKeyModification to the configuration from tf state
+func (c *Configuration) IngestCacheKeyMap(ckm map[string]interface{}) {
+	c.CacheKeyModification = &CacheKeyModification{
+		Enabled:                     ckm["enabled"].(bool),
+		NormalizeKeyPathToLowerCase: ckm["case_insensitive_cache"].(bool),
+	}
+}
+
+// BuildLogMap assembles AccessLogs and OriginPullLogs into a tf state schema map
+func (c *Configuration) BuildLogMap() map[string]interface{} {
+	lm := make(map[string]interface{})
+	lm["access_logs"] = c.AccessLogs.Enabled
+	lm["origin_pull_logs"] = c.OriginPullLogs.Enabled
+	return lm
+}
+
+// IngestLogMap adds AccessLogs and OriginPullLogs models from tf state schema map
+func (c *Configuration) IngestLogMap(logs map[string]interface{}) {
+	c.AccessLogs = &AccessLogs{
+		Enabled: logs["access_logs"].(bool),
+	}
+	c.OriginPullLogs = &OriginPullLogs{
+		Enabled: logs["origin_pull_logs"].(bool),
+	}
 }
 
 // BuildOriginPullPoliciesList returns a slice of policies from tf state
@@ -217,6 +344,30 @@ func (c *Configuration) ActionableHostnamesAsStringSlice() []string {
 	return hostnames
 }
 
+// IngestOriginMap attaches origin details to the configuration model
+func (c *Configuration) IngestOriginMap(originMap map[string]interface{}) {
+	c.OriginPullHost = &OriginPullHost{
+		Primary:   originMap["primary"].(int),
+		Secondary: originMap["secondary"].(int),
+		Path:      originMap["path"].(string),
+	}
+	c.OriginPullProtocol = &OriginPullProtocol{
+		Protocol: originMap["origin_pull_protocol"].(string),
+	}
+	c.OriginPull = &OriginPull{
+		RedirectAction: originMap["redirect_action"].(string),
+	}
+	c.GzipOriginPull = &GzipOriginPull{
+		Enabled: originMap["gzip"].(bool),
+	}
+	c.OriginPersistentConnections = &OriginPersistentConnections{
+		Enabled: originMap["persistent_connections"].(bool),
+	}
+	c.FileSegmentation = &FileSegmentation{
+		Enabled: originMap["file_segmentation"].(bool),
+	}
+}
+
 // BuildOriginInterface returns a tf state
 // compatible reflection of origin pull host and other details
 func (c *Configuration) BuildOriginInterface() map[string]interface{} {
@@ -283,6 +434,45 @@ func (c *ConfigurationCreate) Validate() error {
 		return err
 	}
 	return nil
+}
+
+// AppendHostnames adds hostnames to the model from terraform state
+func (c *ConfigurationCreate) AppendHostnames(list []interface{}) {
+	hnl := make([]*ConfigurationHostname, len(list))
+	if len(list) > 0 {
+		for _, hostname := range list {
+			thisHN := &ConfigurationHostname{
+				Domain: hostname.(string),
+			}
+			hnl = append(hnl, thisHN)
+		}
+	}
+	c.Hostname = hnl
+}
+
+// NewCreateConfigurationFromScope returns a baseline empty configuration from terraform scope
+func NewCreateConfigurationFromScope(scope map[string]interface{}) (*ConfigurationCreate, error) {
+	cc := &ConfigurationCreate{}
+
+	if scope["platform"] != "" {
+		cc.Platform = scope["platform"].(string)
+	} else {
+		cc.Platform = "CDS"
+	}
+
+	if scope["name"] != "" {
+		cc.Name = scope["name"].(string)
+	} else {
+		return nil, fmt.Errorf("Scope payload did not include name")
+	}
+
+	if scope["path"] != "" {
+		cc.Path = scope["path"].(string)
+	} else {
+		return nil, fmt.Errorf("Scope payload did not include path")
+	}
+
+	return cc, nil
 }
 
 // NewDefaultConfiguration returns a baseline configuration to be modified with defaults
@@ -616,20 +806,52 @@ type CacheKeyModification struct {
 
 // Compression GZIP mime configuration
 type Compression struct {
-	GZIP  string `json:"gzip"`
-	Level int    `json:"level,string"`
-	Mime  string `json:"mime"`
+	Enabled bool   `json:"enabled"`
+	GZIP    string `json:"gzip"`
+	Level   int    `json:"level,string"`
+	Mime    string `json:"mime"`
+}
+
+// BuildMap returns a map of StaticHeader for tf state
+func (c *Compression) BuildMap() map[string]interface{} {
+	cm := make(map[string]interface{})
+	cm["enabled"] = c.Enabled
+	cm["gzip"] = c.GZIP
+	cm["level"] = c.Level
+	cm["mime"] = c.Mime
+	return cm
 }
 
 // StaticHeader Headers to arbitrarily add
 type StaticHeader struct {
-	HTTP       string `json:"http"`
-	OriginPull string `json:"originPull"`
+	Enabled       bool   `json:"enabled"`
+	HTTP          string `json:"http"`
+	OriginPull    string `json:"originPull"`
+	ClientRequest string `json:"clientRequest"`
+}
+
+// BuildMap returns a map of StaticHeader for tf state
+func (s *StaticHeader) BuildMap() map[string]interface{} {
+	shm := make(map[string]interface{})
+	shm["enabled"] = s.Enabled
+	shm["origin_pull"] = s.OriginPull
+	shm["client_request"] = s.ClientRequest
+	shm["http"] = s.HTTP
+	return shm
 }
 
 // HTTPMethods configures HTTP methods allowed
 type HTTPMethods struct {
+	Enabled  bool   `json:"enabled"`
 	PassThru string `json:"passThru"`
+}
+
+// BuildMap returns a map of HTTPMethods for tf state
+func (s *HTTPMethods) BuildMap() map[string]interface{} {
+	hmm := make(map[string]interface{})
+	hmm["enabled"] = s.Enabled
+	hmm["passthru"] = s.PassThru
+	return hmm
 }
 
 // AccessLogs defines whether or not access logging is enabled
