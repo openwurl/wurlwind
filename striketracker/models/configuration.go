@@ -177,6 +177,29 @@ func (c *Configuration) IngestLogMap(logs map[string]interface{}) {
 	}
 }
 
+// IngestCacheControl adds a list of cache control directives to the model
+func (c *Configuration) IngestCacheControl(tfCacheControlList []interface{}) {
+	ccl := BuildCacheControlList(tfCacheControlList)
+	c.CacheControl = ccl
+}
+
+// BuildCacheControlList returns a slice of CacheControls from tf state
+func BuildCacheControlList(tfCacheControlList []interface{}) []*CacheControl {
+	cacheControlList := []*CacheControl{}
+	for _, cacheControl := range tfCacheControlList {
+		thisControl := cacheControl.(map[string]interface{})
+		newControl := &CacheControl{
+			Enabled:           thisControl["enabled"].(bool),
+			MustRevalidate:    thisControl["must_revalidate"].(bool),
+			MaxAge:            thisControl["max_age"].(int),
+			SynchronizeMaxAge: thisControl["synchronize_max_age"].(bool),
+			Override:          thisControl["override"].(string),
+		}
+		cacheControlList = append(cacheControlList, newControl)
+	}
+	return cacheControlList
+}
+
 // BuildOriginPullPoliciesList returns a slice of policies from tf state
 func BuildOriginPullPoliciesList(tfPullPolicies *[]interface{}) []*OriginPullPolicy {
 	policylist := []*OriginPullPolicy{}
@@ -208,6 +231,11 @@ func BuildOriginPullPoliciesList(tfPullPolicies *[]interface{}) []*OriginPullPol
 	}
 
 	return policylist
+}
+
+// IngestOriginPullPolicies attaches a list of origin pull policies to the model from tf state
+func (c *Configuration) IngestOriginPullPolicies(tfPullPolicies []interface{}) {
+	c.OriginPullPolicy = BuildOriginPullPoliciesList(&tfPullPolicies)
 }
 
 // BuildHostScopeInterface returns scope details
@@ -555,6 +583,12 @@ func (o *OriginRequestModification) AsMap() map[string]interface{} {
 	return mod
 }
 
+// IngestOriginRequestModification adds a list of origin request edgerules from tfstate
+func (c *Configuration) IngestOriginRequestModification(tfSchema []interface{}) {
+	c.OriginRequestModification = BuildOriginRequestModification(tfSchema)
+
+}
+
 // BuildOriginRequestModification ...
 func BuildOriginRequestModification(tfSchema []interface{}) []*OriginRequestModification {
 	modList := []*OriginRequestModification{}
@@ -586,6 +620,12 @@ func (o *OriginResponseModification) AsMap() map[string]interface{} {
 	mod["add_headers"] = o.AddHeaders
 	mod["flow_control"] = o.FlowControl
 	return mod
+}
+
+// IngestOriginResponseModification appends a list of origin response edge rules from tfstate
+func (c *Configuration) IngestOriginResponseModification(tfSchema []interface{}) {
+	c.OriginResponseModification = BuildOriginResponseModification(tfSchema)
+
 }
 
 // BuildOriginResponseModification ...
@@ -621,6 +661,12 @@ func (o *ClientResponseModification) AsMap() map[string]interface{} {
 	return mod
 }
 
+// IngestClientResponseModification appends a list of client response edge rules from tfstate
+func (c *Configuration) IngestClientResponseModification(tfSchema []interface{}) {
+	c.ClientResponseModification = BuildClientResponseModification(tfSchema)
+
+}
+
 // BuildClientResponseModification ...
 func BuildClientResponseModification(tfSchema []interface{}) []*ClientResponseModification {
 	modList := []*ClientResponseModification{}
@@ -652,6 +698,12 @@ func (o *ClientRequestModification) AsMap() map[string]interface{} {
 	mod["add_headers"] = o.AddHeaders
 	mod["flow_control"] = o.FlowControl
 	return mod
+}
+
+// IngestClientRequestModification appends a list of client response edge rules from tfstate
+func (c *Configuration) IngestClientRequestModification(tfSchema []interface{}) {
+	c.ClientRequestModification = BuildClientRequestModification(tfSchema)
+
 }
 
 // BuildClientRequestModification ...
