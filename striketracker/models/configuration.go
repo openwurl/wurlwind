@@ -2,8 +2,10 @@ package models
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/openwurl/wurlwind/pkg/validation"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -32,7 +34,7 @@ type Configuration struct {
 	CacheKeyModification        *CacheKeyModification         `json:"cacheKeyModification"`
 	Compression                 *Compression                  `json:"compression"`
 	StaticHeader                []*StaticHeader               `json:"staticHeader"`
-	HTTPMethods                 *HTTPMethods                  `json:"httpMethods"`
+	HTTPMethods                 []*HTTPMethods                `json:"httpMethods"`
 	AccessLogs                  *AccessLogs                   `json:"accessLogs"`
 	OriginPullHost              *OriginPullHost               `json:"originPullHost"`
 	OriginRequestModification   []*OriginRequestModification  `json:"originRequestModification,omitempty"`
@@ -57,19 +59,19 @@ func ConfigurationFromScope(scope map[string]interface{}) (*Configuration, error
 		Scope: &Scope{},
 	}
 
-	if scope["platform"] != "" {
+	if scope["platform"] != nil {
 		c.Scope.Platform = scope["platform"].(string)
 	} else {
 		c.Scope.Platform = "CDS"
 	}
 
-	if scope["name"] != "" {
+	if scope["name"] != nil {
 		c.Scope.Name = scope["name"].(string)
 	} else {
 		return nil, fmt.Errorf("Scope payload did not include name")
 	}
 
-	if scope["path"] != "" {
+	if scope["path"] != nil {
 		c.Scope.Path = scope["path"].(string)
 	} else {
 		return nil, fmt.Errorf("Scope payload did not include path")
@@ -97,6 +99,58 @@ func (c *Configuration) IngestHostnames(list []interface{}) {
 	c.Hostname = hnl
 }
 
+// BuildDeliveryMap assembles compression, httpmethods, and static header into tf state map
+func (c *Configuration) BuildDeliveryMap() []interface{} {
+	dm := make([]interface{}, 1)
+	//	dm[0] = make([]interface{}, 3)
+	//	compressionMap := c.Compression.BuildMap()
+	//	dm[0][0] = compressionMap
+
+	return dm
+}
+
+// IngestDeliveryMap adds Compression, HTTPMethods, and StaticHeader from tf state
+func (c *Configuration) IngestDeliveryMap(deliveryMap []interface{}) {
+	log.Println(spew.Sprint(deliveryMap))
+
+	/*
+		compressionMap := deliveryMap[0].(map[string]interface{})
+		c.Compression = &Compression{
+			Enabled: compressionMap["enabled"].(bool),
+			GZIP:    compressionMap["gzip"].(string),
+			Level:   compressionMap["level"].(int),
+			Mime:    compressionMap["mime"].(string),
+		}
+
+		httpMethodsMap := deliveryMap[1].([]interface{})
+		assembledMethodsMap := make([]*HTTPMethods, len(httpMethodsMap))
+		for _, method := range httpMethodsMap {
+			thisMethod := method.(map[string]interface{})
+			meth := &HTTPMethods{
+				Enabled:  thisMethod["enabled"].(bool),
+				PassThru: thisMethod["pass_thru"].(string),
+			}
+			assembledMethodsMap = append(assembledMethodsMap, meth)
+		}
+		c.HTTPMethods = assembledMethodsMap
+
+		staticHeaderMap := deliveryMap[2].([]interface{})
+		assembledStaticHeaders := make([]*StaticHeader, len(staticHeaderMap))
+		for _, header := range staticHeaderMap {
+			thisHeader := header.(map[string]interface{})
+			head := &StaticHeader{
+				Enabled:       thisHeader["enabled"].(bool),
+				OriginPull:    thisHeader["origin_pull"].(string),
+				ClientRequest: thisHeader["client_request"].(string),
+				HTTP:          thisHeader["http"].(string),
+			}
+			assembledStaticHeaders = append(assembledStaticHeaders, head)
+		}
+		c.StaticHeader = assembledStaticHeaders
+	*/
+}
+
+/* Needs entirely replaced
 // BuildDeliveryMap assembles compression, httpmethods and staticheader into tf state map
 func (c *Configuration) BuildDeliveryMap() map[string]interface{} {
 	// Delivery contains Compression, StaticHeader and HTTPMethods
@@ -142,6 +196,7 @@ func (c *Configuration) IngestDeliveryMap(state map[string]interface{}) {
 	}
 
 }
+*/
 
 // BuildCacheKeyMap assembles CacheKeyModification into a tf state map
 func (c *Configuration) BuildCacheKeyMap() map[string]interface{} {
@@ -482,19 +537,19 @@ func (c *ConfigurationCreate) AppendHostnames(list []interface{}) {
 func NewCreateConfigurationFromScope(scope map[string]interface{}) (*ConfigurationCreate, error) {
 	cc := &ConfigurationCreate{}
 
-	if scope["platform"] != "" {
+	if scope["platform"] != nil {
 		cc.Platform = scope["platform"].(string)
 	} else {
 		cc.Platform = "CDS"
 	}
 
-	if scope["name"] != "" {
+	if scope["name"] != nil {
 		cc.Name = scope["name"].(string)
 	} else {
 		return nil, fmt.Errorf("Scope payload did not include name")
 	}
 
-	if scope["path"] != "" {
+	if scope["path"] != nil {
 		cc.Path = scope["path"].(string)
 	} else {
 		return nil, fmt.Errorf("Scope payload did not include path")
@@ -504,6 +559,7 @@ func NewCreateConfigurationFromScope(scope map[string]interface{}) (*Configurati
 }
 
 // NewDefaultConfiguration returns a baseline configuration to be modified with defaults
+/*
 func NewDefaultConfiguration() *Configuration {
 	c := &Configuration{
 		OriginPullLogs: &OriginPullLogs{
@@ -562,6 +618,7 @@ func NewDefaultConfiguration() *Configuration {
 	})
 	return c
 }
+*/
 
 /*
 	Sub structures
