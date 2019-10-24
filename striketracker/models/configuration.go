@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
@@ -111,43 +112,48 @@ func (c *Configuration) BuildDeliveryMap() []interface{} {
 
 // IngestDeliveryMap adds Compression, HTTPMethods, and StaticHeader from tf state
 func (c *Configuration) IngestDeliveryMap(deliveryMap []interface{}) {
-	log.Println(spew.Sprint(deliveryMap))
+	if len(deliveryMap) > 0 {
+		deliveryMapFormatted := deliveryMap[0].(map[string]interface{})
 
-	/*
-		compressionMap := deliveryMap[0].(map[string]interface{})
-		c.Compression = &Compression{
-			Enabled: compressionMap["enabled"].(bool),
-			GZIP:    compressionMap["gzip"].(string),
-			Level:   compressionMap["level"].(int),
-			Mime:    compressionMap["mime"].(string),
+		if deliveryMapFormatted["compression"] != nil {
+			c.Compression = CompressionFromState(deliveryMapFormatted["compression"].(map[string]interface{}))
 		}
 
-		httpMethodsMap := deliveryMap[1].([]interface{})
-		assembledMethodsMap := make([]*HTTPMethods, len(httpMethodsMap))
-		for _, method := range httpMethodsMap {
-			thisMethod := method.(map[string]interface{})
-			meth := &HTTPMethods{
-				Enabled:  thisMethod["enabled"].(bool),
-				PassThru: thisMethod["pass_thru"].(string),
+		if deliveryMapFormatted["static_header"] != nil {
+			staticHeaderFormat := deliveryMapFormatted["static_header"].([]interface{})
+			assembledStaticHeaders := make([]*StaticHeader, len(staticHeaderFormat))
+			for _, thisHeader := range staticHeaderFormat {
+				thisHeaderFormat := thisHeader.(map[string]interface{})
+				head := &StaticHeader{
+					Enabled:       thisHeaderFormat["enabled"].(bool),
+					OriginPull:    thisHeaderFormat["origin_pull"].(string),
+					ClientRequest: thisHeaderFormat["client_request"].(string),
+					HTTP:          thisHeaderFormat["http"].(string),
+				}
+				assembledStaticHeaders = append(assembledStaticHeaders, head)
 			}
-			assembledMethodsMap = append(assembledMethodsMap, meth)
+			c.StaticHeader = assembledStaticHeaders
 		}
-		c.HTTPMethods = assembledMethodsMap
 
-		staticHeaderMap := deliveryMap[2].([]interface{})
-		assembledStaticHeaders := make([]*StaticHeader, len(staticHeaderMap))
-		for _, header := range staticHeaderMap {
-			thisHeader := header.(map[string]interface{})
-			head := &StaticHeader{
-				Enabled:       thisHeader["enabled"].(bool),
-				OriginPull:    thisHeader["origin_pull"].(string),
-				ClientRequest: thisHeader["client_request"].(string),
-				HTTP:          thisHeader["http"].(string),
+		if deliveryMapFormatted["http_methods"] != nil {
+			httpMethodsFormat := deliveryMapFormatted["http_methods"].([]interface{})
+			assembledMethodsMap := make([]*HTTPMethods, len(httpMethodsFormat))
+			for _, method := range httpMethodsFormat {
+				thisMethod := method.(map[string]interface{})
+				meth := &HTTPMethods{
+					Enabled:  thisMethod["enabled"].(bool),
+					PassThru: thisMethod["pass_thru"].(string),
+				}
+				assembledMethodsMap = append(assembledMethodsMap, meth)
 			}
-			assembledStaticHeaders = append(assembledStaticHeaders, head)
+			c.HTTPMethods = assembledMethodsMap
 		}
-		c.StaticHeader = assembledStaticHeaders
-	*/
+
+	} else {
+		c.Compression = &Compression{}
+		c.HTTPMethods = make([]*HTTPMethods, 0)
+		c.StaticHeader = make([]*StaticHeader, 0)
+	}
 }
 
 /* Needs entirely replaced
@@ -208,9 +214,12 @@ func (c *Configuration) BuildCacheKeyMap() map[string]interface{} {
 
 // IngestCacheKeyMap adds CacheKeyModification to the configuration from tf state
 func (c *Configuration) IngestCacheKeyMap(ckm map[string]interface{}) {
-	c.CacheKeyModification = &CacheKeyModification{
-		Enabled:                     ckm["enabled"].(bool),
-		NormalizeKeyPathToLowerCase: ckm["case_insensitive_cache"].(bool),
+	c.CacheKeyModification = &CacheKeyModification{}
+	if ckm["enabled"] != nil {
+		c.CacheKeyModification.Enabled = ckm["enabled"].(bool)
+	}
+	if ckm["case_insensitive_cache"] != nil {
+		c.CacheKeyModification.NormalizeKeyPathToLowerCase = ckm["case_insensitive_cache"].(bool)
 	}
 }
 
@@ -224,11 +233,14 @@ func (c *Configuration) BuildLogMap() map[string]interface{} {
 
 // IngestLogMap adds AccessLogs and OriginPullLogs models from tf state schema map
 func (c *Configuration) IngestLogMap(logs map[string]interface{}) {
-	c.AccessLogs = &AccessLogs{
-		Enabled: logs["access_logs"].(bool),
+	c.AccessLogs = &AccessLogs{}
+	if logs["access_logs"] != nil {
+		c.AccessLogs.Enabled = logs["access_logs"].(bool)
 	}
-	c.OriginPullLogs = &OriginPullLogs{
-		Enabled: logs["origin_pull_logs"].(bool),
+
+	c.OriginPullLogs = &OriginPullLogs{}
+	if logs["origin_pull_logs"] != nil {
+		c.OriginPullLogs.Enabled = logs["origin_pull_logs"].(bool)
 	}
 }
 
@@ -429,25 +441,50 @@ func (c *Configuration) ActionableHostnamesAsStringSlice() []string {
 
 // IngestOriginMap attaches origin details to the configuration model
 func (c *Configuration) IngestOriginMap(originMap map[string]interface{}) {
-	c.OriginPullHost = &OriginPullHost{
-		Primary:   originMap["primary"].(int),
-		Secondary: originMap["secondary"].(int),
-		Path:      originMap["path"].(string),
+	c.OriginPullHost = &OriginPullHost{}
+	log.Println(spew.Sprint(originMap))
+	if originMap["primary"] != nil {
+		primaryInt, err := strconv.Atoi(originMap["primary"].(string))
+		if err != nil {
+			primaryInt = 0
+		}
+		c.OriginPullHost.Primary = primaryInt
 	}
-	c.OriginPullProtocol = &OriginPullProtocol{
-		Protocol: originMap["origin_pull_protocol"].(string),
+	if originMap["secondary"] != nil {
+		secondaryInt, err := strconv.Atoi(originMap["secondary"].(string))
+		if err != nil {
+			secondaryInt = 0
+		}
+		c.OriginPullHost.Secondary = secondaryInt
 	}
-	c.OriginPull = &OriginPull{
-		RedirectAction: originMap["redirect_action"].(string),
+
+	if originMap["path"] != nil {
+		c.OriginPullHost.Path = originMap["path"].(string)
 	}
-	c.GzipOriginPull = &GzipOriginPull{
-		Enabled: originMap["gzip"].(bool),
+
+	c.OriginPullProtocol = &OriginPullProtocol{}
+	if originMap["origin_pull_protocol"] != nil {
+		c.OriginPullProtocol.Protocol = originMap["origin_pull_protocol"].(string)
 	}
-	c.OriginPersistentConnections = &OriginPersistentConnections{
-		Enabled: originMap["persistent_connections"].(bool),
+
+	c.OriginPull = &OriginPull{}
+	if originMap["redirect_action"] != nil {
+		c.OriginPull.RedirectAction = originMap["redirect_action"].(string)
 	}
-	c.FileSegmentation = &FileSegmentation{
-		Enabled: originMap["file_segmentation"].(bool),
+
+	c.GzipOriginPull = &GzipOriginPull{}
+	if originMap["gzip"] != nil {
+		c.GzipOriginPull.Enabled = originMap["gzip"].(bool)
+	}
+
+	c.OriginPersistentConnections = &OriginPersistentConnections{}
+	if originMap["persistent_connections"] != nil {
+		c.OriginPersistentConnections.Enabled = originMap["persistent_connections"].(bool)
+	}
+
+	c.FileSegmentation = &FileSegmentation{}
+	if originMap["file_segmentation"] != nil {
+		c.FileSegmentation.Enabled = originMap["file_segmentation"].(bool)
 	}
 }
 
@@ -929,6 +966,46 @@ func (c *Compression) BuildMap() map[string]interface{} {
 	cm["level"] = c.Level
 	cm["mime"] = c.Mime
 	return cm
+}
+
+// CompressionFromState returns a compression model from tf state
+func CompressionFromState(stateMap map[string]interface{}) *Compression {
+	c := &Compression{}
+
+	/*
+		2019-10-23T14:02:32.108-0700 [DEBUG]
+		plugin.terraform-provider-striketracker:
+		2019/10/23 14:02:32
+		map[
+			enabled:true
+			level:2
+			gzip:m3u8,ts
+			mime:text/*,application/x-mpegUR,vnd.apple.mpegURL,video/MP2T
+		]
+	*/
+
+	if stateMap["enabled"] != nil {
+		log.Println(spew.Sprint(stateMap))
+		enabledBoolHack, err := strconv.ParseBool(stateMap["enabled"].(string))
+		if err != nil {
+			enabledBoolHack = true // default if fails
+		}
+		c.Enabled = enabledBoolHack
+	}
+
+	if stateMap["mime"] != nil {
+		c.Mime = stateMap["mime"].(string)
+	}
+
+	if stateMap["level"] != nil {
+		c.Level = stateMap["level"].(int)
+	}
+
+	if stateMap["gzip"] != nil {
+		c.GZIP = stateMap["gzip"].(string)
+	}
+
+	return c
 }
 
 // StaticHeader Headers to arbitrarily add
