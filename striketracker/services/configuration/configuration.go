@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/imdario/mergo"
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
@@ -124,7 +125,7 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 			err = respErr
 		}
 
-		return nil, fmt.Errorf("Update failed. Tried %s (%v)", endpoint, err)
+		return nil, fmt.Errorf("Update failed. Tried %s [%v](%v)", endpoint, spew.Sprint(config), err)
 	}
 
 	return config, nil

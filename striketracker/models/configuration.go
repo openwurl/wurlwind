@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/openwurl/wurlwind/pkg/validation"
 	validator "gopkg.in/go-playground/validator.v9"
 )
@@ -101,14 +102,31 @@ func (c *Configuration) IngestHostnames(list []interface{}) {
 }
 
 // BuildDeliveryMap assembles compression, httpmethods, and static header into tf state map
-func (c *Configuration) BuildDeliveryMap() []interface{} {
-	dm := make([]interface{}, 1)
-	//	dm[0] = make([]interface{}, 3)
-	//	compressionMap := c.Compression.BuildMap()
-	//	dm[0][0] = compressionMap
+func (c *Configuration) BuildDeliveryMap() *schema.Set {
+	shs := schema.Set{}
+	initialMap := make(map[string]interface{}, 3)
+	initialMap["compression"] = c.Compression.BuildMap()
+	initialMap["static_header"] = make([]interface{}, 0)
+	initialMap["static_header"] = c.BuildStaticHeaderMap()
+	initialMap["http_methods"] = make([]interface{}, 0)
+	initialMap["http_methods"] = c.BuildHTTPMethodsMap()
 
-	return dm
+	shs.Add(initialMap)
+
+	return &shs
 }
+
+/*
+func resourceConfigurationDeliveryCompressionHash(v interface{}) int {
+	var buf bytes.Buffer
+	m := v.(map[string]interface{})
+
+
+
+	buf.WriteString(fmt.Sprintf(""))
+	return hashcode.String(buf.String())
+}
+*/
 
 // IngestDeliveryMap adds Compression, HTTPMethods, and StaticHeader from tf state
 func (c *Configuration) IngestDeliveryMap(deliveryMap []interface{}) {
@@ -120,7 +138,7 @@ func (c *Configuration) IngestDeliveryMap(deliveryMap []interface{}) {
 		}
 
 		if deliveryMapFormatted["static_header"] != nil {
-			staticHeaderFormat := deliveryMapFormatted["static_header"].([]interface{})
+			staticHeaderFormat := deliveryMapFormatted["static_header"].(*schema.Set).List()
 			assembledStaticHeaders := make([]*StaticHeader, len(staticHeaderFormat))
 			for _, thisHeader := range staticHeaderFormat {
 				thisHeaderFormat := thisHeader.(map[string]interface{})
@@ -136,7 +154,7 @@ func (c *Configuration) IngestDeliveryMap(deliveryMap []interface{}) {
 		}
 
 		if deliveryMapFormatted["http_methods"] != nil {
-			httpMethodsFormat := deliveryMapFormatted["http_methods"].([]interface{})
+			httpMethodsFormat := deliveryMapFormatted["http_methods"].(*schema.Set).List()
 			assembledMethodsMap := make([]*HTTPMethods, len(httpMethodsFormat))
 			for _, method := range httpMethodsFormat {
 				thisMethod := method.(map[string]interface{})
@@ -154,6 +172,24 @@ func (c *Configuration) IngestDeliveryMap(deliveryMap []interface{}) {
 		c.HTTPMethods = make([]*HTTPMethods, 0)
 		c.StaticHeader = make([]*StaticHeader, 0)
 	}
+}
+
+// BuildStaticHeaderMap returns a slice of static header maps
+func (c *Configuration) BuildStaticHeaderMap() []interface{} {
+	headerList := make([]interface{}, len(c.StaticHeader))
+	for _, header := range c.StaticHeader {
+		headerList = append(headerList, header.BuildMap())
+	}
+	return headerList
+}
+
+// BuildHTTPMethodsMap returns a slice of HTTPMethods maps
+func (c *Configuration) BuildHTTPMethodsMap() []interface{} {
+	methodList := make([]interface{}, len(c.HTTPMethods))
+	for _, method := range c.HTTPMethods {
+		methodList = append(methodList, method.BuildMap())
+	}
+	return methodList
 }
 
 /* Needs entirely replaced
@@ -972,33 +1008,12 @@ func (c *Compression) BuildMap() map[string]interface{} {
 func CompressionFromState(stateMap map[string]interface{}) *Compression {
 	c := &Compression{}
 
-	/*
-		2019-10-23T14:02:32.108-0700 [DEBUG]
-		plugin.terraform-provider-striketracker:
-		2019/10/23 14:02:32
-		map[
-			enabled:true
-			level:2
-			gzip:m3u8,ts
-			mime:text/*,application/x-mpegUR,vnd.apple.mpegURL,video/MP2T
-		]
-	*/
+	c.Enabled = BoolFromInterface(stateMap["enabled"], DefaultCompressionEnabledValue)
 
-	if stateMap["enabled"] != nil {
-		log.Println(spew.Sprint(stateMap))
-		enabledBoolHack, err := strconv.ParseBool(stateMap["enabled"].(string))
-		if err != nil {
-			enabledBoolHack = true // default if fails
-		}
-		c.Enabled = enabledBoolHack
-	}
+	c.Level = IntFromInterface(stateMap["level"], DefaultCompressionLevelValue)
 
 	if stateMap["mime"] != nil {
 		c.Mime = stateMap["mime"].(string)
-	}
-
-	if stateMap["level"] != nil {
-		c.Level = stateMap["level"].(int)
 	}
 
 	if stateMap["gzip"] != nil {
