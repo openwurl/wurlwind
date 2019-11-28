@@ -4,9 +4,10 @@ package configuration
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/imdario/mergo"
+	"github.com/openwurl/wurlwind/pkg/debug"
 	"github.com/openwurl/wurlwind/striketracker"
 	"github.com/openwurl/wurlwind/striketracker/endpoints"
 	"github.com/openwurl/wurlwind/striketracker/models"
@@ -53,7 +54,7 @@ func New(c *striketracker.Client) *Service {
 // Accepts models.Configuration and hostHash
 //
 // Returns an updated models.Configuration
-func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.ConfigurationCreate) (*models.ConfigurationCreate, error) {
+func (s *Service) Create(ctx context.Context, accountHash string, hostHash string, scope *models.NewHostConfiguration) (*models.NewHostConfiguration, error) {
 	if err := scope.Validate(); err != nil {
 		return nil, err
 	}
@@ -95,16 +96,18 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 		return nil, err
 	}
 
+	// TODO: Refactor to no longer fetch upstream
+
 	// Fetch upstream configuration then merge our changes to it
 	// Changes should be explicit
-	origin, err := s.Get(ctx, accountHash, hostHash, scopeID)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get upstream configuration to merge: %v", err)
-	}
-	err = mergo.Merge(origin, config)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to merge upstream and given configuration")
-	}
+	//origin, err := s.Get(ctx, accountHash, hostHash, scopeID)
+	//if err != nil {
+	//	return nil, fmt.Errorf("Failed to get upstream configuration to merge: %v", err)
+	//}
+	//err = mergo.Merge(origin, config)
+	//if err != nil {
+	//	return nil, fmt.Errorf("Failed to merge upstream and given configuration")
+	//}
 
 	endpoint := fmt.Sprintf("%s/%s/configuration/%d", s.Endpoint.Format(accountHash), hostHash, scopeID)
 
@@ -118,6 +121,11 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 		return nil, err
 	}
 
+	err = debug.WriteDebugFile("Update Payload", config)
+	if err != nil {
+		debug.Log("Update", "%v", err)
+	}
+
 	if err = services.ValidateResponse(resp); err != nil {
 
 		// Catch any embedded errors in the body and add them to our response
@@ -125,7 +133,8 @@ func (s *Service) Update(ctx context.Context, accountHash string, hostHash strin
 			err = respErr
 		}
 
-		return nil, fmt.Errorf("Update failed. Tried %s [%v](%v)", endpoint, spew.Sprint(config), err)
+		log.Printf("%s response headers: %v\n%v", endpoint, resp.Header, spew.Sprint(config))
+		return nil, fmt.Errorf("Update failed. Tried %s (%v)", endpoint, err)
 	}
 
 	return config, nil

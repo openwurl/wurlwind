@@ -1,6 +1,8 @@
 package models
 
-import "strconv"
+import (
+	"strconv"
+)
 
 // BoolFromInterface will attempt to extract a bool value from an interface in several ways
 // and Will return fallback if no valid parsing can be achieved
