@@ -88,3 +88,43 @@ func (c *Configuration) OriginHostFromModel() []interface{} {
 
 	return originHostSliceIface
 }
+
+// =========
+// Origin Pull Cache Extension
+
+// OriginPullCacheExtensionFromState ...
+func (c *Configuration) OriginPullCacheExtensionFromState(state map[string]interface{}) {
+	c.OriginPullCacheExtension = &OriginPullCacheExtension{}
+	if state["enabled"] != nil {
+		c.OriginPullCacheExtension.Enabled = state["enabled"].(bool)
+	}
+	if state["expired_cache_extension"] != nil {
+		ece := state["expired_cache_extension"].(int)
+		c.OriginPullCacheExtension.ExpiredCacheExtension = &ece
+	}
+	if state["origin_unreachable_cache_extension"] != nil {
+		ouce := state["origin_unreachable_cache_extension"].(int)
+		c.OriginPullCacheExtension.OriginUnreachableCacheExtension = &ouce
+	}
+}
+
+// OriginPullCacheExtensionFromModel ...
+func (c *Configuration) OriginPullCacheExtensionFromModel() []interface{} {
+	originPullCacheExtensionSliceIface := []interface{}{}
+	originPullCacheExtensionIface := make(map[string]interface{})
+
+	debug.Log("OPC", "[%v - %s - %s]", c.OriginPullCacheExtension.Enabled, c.OriginPullCacheExtension.ExpiredCacheExtension, c.OriginPullCacheExtension.OriginUnreachableCacheExtension)
+
+	if c.OriginPullCacheExtension != nil {
+		originPullCacheExtensionIface["enabled"] = c.OriginPullCacheExtension.Enabled
+		originPullCacheExtensionIface["expired_cache_extension"] = c.OriginPullCacheExtension.ExpiredCacheExtension
+		originPullCacheExtensionIface["origin_unreachable_cache_extension"] = c.OriginPullCacheExtension.OriginUnreachableCacheExtension
+	}
+
+	//test, _ := json.MarshalIndent(c.OriginPullCacheExtension, "", "	")
+	//debug.Log("OPC", "%v", test)
+
+	originPullCacheExtensionSliceIface = append(originPullCacheExtensionSliceIface, originPullCacheExtensionIface)
+
+	return originPullCacheExtensionSliceIface
+}

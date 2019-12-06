@@ -30,8 +30,8 @@ func ScopeHostnameFromInterfaceSlice(hostnames []interface{}) []*ScopeHostname {
 // OriginPullCacheExtension encapsulates stale cache extension settings
 type OriginPullCacheExtension struct {
 	Enabled                         bool `json:"enabled,omitempty"`
-	ExpiredCacheExtension           int  `json:"expiredCacheExtension,omitempty"`
-	OriginUnreachableCacheExtension int  `json:"originUnreachableCacheExtension,omitempty"`
+	ExpiredCacheExtension           *int `json:"expiredCacheExtension" validate:"required"`
+	OriginUnreachableCacheExtension *int `json:"originUnreachableCacheExtension,omitempty"`
 }
 
 /**********************
