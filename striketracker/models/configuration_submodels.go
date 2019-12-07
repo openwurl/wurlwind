@@ -64,7 +64,7 @@ type OriginPullPolicy struct {
 	MustRevalidateToNoCache        bool   `json:"mustRevalidateToNoCache"`
 	NoCacheBehavior                string `json:"noCacheBehavior"`
 	UpdateHTTPHeadersOn304Response bool   `json:"updateHttpHeadersOn304Response"`
-	DefaultCacheBehavior           string `json:"defaultCacheBehavior"` // Default behaviour when the policy is "Cache Control" and the "Cache-Control" header is missing.
+	DefaultCacheBehavior           string `json:"defaultCacheBehavior"` // Default behaviour when the policy is "Cache Control" and the "Cache-Control" header is missing. ttl & ...?
 	MaxAgeZeroToNoCache            bool   `json:"maxAgeZeroToNoCache"`
 	BypassCacheIdentifier          string `json:"bypassCacheIdentifier"` // no-cache only
 	ContentTypeFilter              string `json:"contentTypeFilter"`     // string list
@@ -76,31 +76,29 @@ type OriginPullPolicy struct {
 
 // NewOriginPullPolicyFromState returns a configured origin pull policy from a state index
 func NewOriginPullPolicyFromState(state map[string]interface{}) *OriginPullPolicy {
+
+	expireSeconds := state["expire_seconds"].(int)
 	return &OriginPullPolicy{
-		Enabled: state["enabled"].(bool),
+		Enabled:                        state["enabled"].(bool),
+		ExpirePolicy:                   state["expire_policy"].(string),
+		ExpireSeconds:                  &expireSeconds,
+		ForceBypassCache:               state["force_bypass_cache"].(bool),
+		HonorMustRevalidate:            state["honor_must_revalidate"].(bool),
+		HonorNoCache:                   state["honor_must_revalidate"].(bool),
+		HonorNoStore:                   state["honor_no_store"].(bool),
+		HonorPrivate:                   state["honor_private"].(bool),
+		HonorSMaxAge:                   state["honor_smax_age"].(bool),
+		HTTPHeaders:                    state["http_headers"].(string),
+		MustRevalidateToNoCache:        state["must_revalidate_to_no_cache"].(bool),
+		NoCacheBehavior:                state["no_cache_behavior"].(string),
+		UpdateHTTPHeadersOn304Response: state["update_http_headers_on_304_response"].(bool),
+		DefaultCacheBehavior:           state["default_cache_behavior"].(string),
+		MaxAgeZeroToNoCache:            state["max_age_zero_to_no_cache"].(bool),
+		BypassCacheIdentifier:          state["bypass_cache_identifier"].(string),
+		ContentTypeFilter:              state["content_type_filter"].(string),
+		HeaderFilter:                   state["header_filter"].(string),
+		MethodFilter:                   state["method_filter"].(string),
+		PathFilter:                     state["path_filter"].(string),
+		StatusCodeMatch:                state["status_code_match"].(string),
 	}
 }
-
-/*
-   "id": 538230093,
-   "statusCodeMatch": "200,201",
-   "expirePolicy": "CACHE_CONTROL",
-   "expireSeconds": 1,
-   "honorNoStore": true,
-   "honorNoCache": true,
-   "honorMustRevalidate": true,
-   "noCacheBehavior": "spec",
-   "maxAgeZeroToNoCache": true,
-   "mustRevalidateToNoCache": true,
-   "forceBypassCache": true,
-   "httpHeaders": "Access-Control-Allow-Origin,x-test-thing",
-   "honorPrivate": true,
-   "honorSMaxAge": true,
-   "updateHttpHeadersOn304Response": true,
-   "defaultCacheBehavior": "ttl",
-   "enabled": true,
-   "methodFilter": "GET",
-   "pathFilter": "*filter1*,filter2",
-   "headerFilter": "*header_filter",
-   "contentTypeFilter": "*"
-*/

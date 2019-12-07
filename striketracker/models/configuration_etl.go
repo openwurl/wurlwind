@@ -5,7 +5,6 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/openwurl/wurlwind/pkg/debug"
-	"github.com/openwurl/wurlwind/striketracker/models"
 )
 
 // =========
@@ -133,13 +132,12 @@ func (c *Configuration) OriginPullCacheExtensionFromModel() []interface{} {
 // OriginPullPolicyFromState ...
 func (c *Configuration) OriginPullPolicyFromState(state []interface{}) error {
 	orderedList := make([]interface{}, len(state))
-	c.OriginPullPolicy = &models.OriginPullPolicy{}
+	c.OriginPullPolicy = make([]*OriginPullPolicy, 0)
 
 	// order the list by defined weight
 	for _, policy := range state {
 		policyCast := policy.(map[string]interface{})
 		policyIndex := policyCast["weight"].(int)
-		// TODO: Rest of keys
 
 		if orderedList[policyIndex] != nil {
 			return fmt.Errorf("Weight %d used multiple times", policyIndex)
@@ -148,7 +146,7 @@ func (c *Configuration) OriginPullPolicyFromState(state []interface{}) error {
 	}
 
 	for _, policy := range orderedList {
-		thisPolicy := models.NewOriginPullPolicyFromState(policy)
+		thisPolicy := NewOriginPullPolicyFromState(policy.(map[string]interface{}))
 		c.OriginPullPolicy = append(c.OriginPullPolicy, thisPolicy)
 	}
 
@@ -164,7 +162,26 @@ func (c *Configuration) OriginPullPolicyFromModel() []interface{} {
 		thisPolicy := make(map[string]interface{})
 		thisPolicy["weight"] = index
 		thisPolicy["enabled"] = policy.Enabled
-		// TODO: Rest of keys
+		thisPolicy["expire_policy"] = policy.ExpirePolicy
+		thisPolicy["expire_seconds"] = policy.ExpireSeconds
+		thisPolicy["force_bypass_cache"] = policy.ForceBypassCache
+		thisPolicy["honor_must_revalidate"] = policy.HonorMustRevalidate
+		thisPolicy["honor_no_cache"] = policy.HonorNoCache
+		thisPolicy["honor_no_store"] = policy.HonorNoStore
+		thisPolicy["honor_private"] = policy.HonorPrivate
+		thisPolicy["honor_smax_age"] = policy.HonorSMaxAge
+		thisPolicy["http_headers"] = policy.HTTPHeaders
+		thisPolicy["must_revalidate_to_no_cache"] = policy.MustRevalidateToNoCache
+		thisPolicy["no_cache_behavior"] = policy.NoCacheBehavior
+		thisPolicy["update_http_headers_on_304_response"] = policy.UpdateHTTPHeadersOn304Response
+		thisPolicy["default_cache_behavior"] = policy.DefaultCacheBehavior
+		thisPolicy["max_age_zero_to_no_cache"] = policy.MaxAgeZeroToNoCache
+		thisPolicy["bypass_cache_identifier"] = policy.BypassCacheIdentifier
+		thisPolicy["content_type_filter"] = policy.ContentTypeFilter
+		thisPolicy["header_filter"] = policy.HeaderFilter
+		thisPolicy["method_filter"] = policy.MethodFilter
+		thisPolicy["path_filter"] = policy.PathFilter
+		thisPolicy["status_code_match"] = policy.StatusCodeMatch
 
 		originPullPolicyIface = append(originPullPolicyIface, thisPolicy)
 	}
