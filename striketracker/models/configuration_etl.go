@@ -1,8 +1,11 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/davecgh/go-spew/spew"
 	"github.com/openwurl/wurlwind/pkg/debug"
+	"github.com/openwurl/wurlwind/striketracker/models"
 )
 
 // =========
@@ -113,18 +116,58 @@ func (c *Configuration) OriginPullCacheExtensionFromModel() []interface{} {
 	originPullCacheExtensionSliceIface := []interface{}{}
 	originPullCacheExtensionIface := make(map[string]interface{})
 
-	debug.Log("OPC", "[%v - %s - %s]", c.OriginPullCacheExtension.Enabled, c.OriginPullCacheExtension.ExpiredCacheExtension, c.OriginPullCacheExtension.OriginUnreachableCacheExtension)
-
 	if c.OriginPullCacheExtension != nil {
 		originPullCacheExtensionIface["enabled"] = c.OriginPullCacheExtension.Enabled
 		originPullCacheExtensionIface["expired_cache_extension"] = c.OriginPullCacheExtension.ExpiredCacheExtension
 		originPullCacheExtensionIface["origin_unreachable_cache_extension"] = c.OriginPullCacheExtension.OriginUnreachableCacheExtension
 	}
 
-	//test, _ := json.MarshalIndent(c.OriginPullCacheExtension, "", "	")
-	//debug.Log("OPC", "%v", test)
-
 	originPullCacheExtensionSliceIface = append(originPullCacheExtensionSliceIface, originPullCacheExtensionIface)
 
 	return originPullCacheExtensionSliceIface
+}
+
+// =========
+// Origin Pull Policy
+
+// OriginPullPolicyFromState ...
+func (c *Configuration) OriginPullPolicyFromState(state []interface{}) error {
+	orderedList := make([]interface{}, len(state))
+	c.OriginPullPolicy = &models.OriginPullPolicy{}
+
+	// order the list by defined weight
+	for _, policy := range state {
+		policyCast := policy.(map[string]interface{})
+		policyIndex := policyCast["weight"].(int)
+		// TODO: Rest of keys
+
+		if orderedList[policyIndex] != nil {
+			return fmt.Errorf("Weight %d used multiple times", policyIndex)
+		}
+		orderedList[policyIndex] = policyCast
+	}
+
+	for _, policy := range orderedList {
+		thisPolicy := models.NewOriginPullPolicyFromState(policy)
+		c.OriginPullPolicy = append(c.OriginPullPolicy, thisPolicy)
+	}
+
+	return nil
+
+}
+
+// OriginPullPolicyFromModel ...
+func (c *Configuration) OriginPullPolicyFromModel() []interface{} {
+	originPullPolicyIface := make([]interface{}, 0)
+
+	for index, policy := range c.OriginPullPolicy {
+		thisPolicy := make(map[string]interface{})
+		thisPolicy["weight"] = index
+		thisPolicy["enabled"] = policy.Enabled
+		// TODO: Rest of keys
+
+		originPullPolicyIface = append(originPullPolicyIface, thisPolicy)
+	}
+
+	return originPullPolicyIface
 }

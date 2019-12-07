@@ -18,6 +18,7 @@ type Configuration struct {
 	Hostname                 []*ScopeHostname          `json:"hostname,omitempty"`
 	OriginPullHost           *OriginPullHost           `json:"originPullHost,omitempty"`
 	OriginPullCacheExtension *OriginPullCacheExtension `json:"originPullCacheExtension,omitempty"`
+	OriginPullPolicy         []*OriginPullPolicy       `json:"originPullPolicy,omitempty"`
 }
 
 // NewConfiguration returns an empty configuration
