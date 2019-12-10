@@ -107,6 +107,8 @@ func NewOriginPullPolicyFromState(state map[string]interface{}) *OriginPullPolic
 Request & Response Modifications
 */
 
+// TODO: This is MVP fields for modifications, however there are more that need implemented
+
 // OriginRequestModification ...
 type OriginRequestModification struct {
 	Enabled     bool   `json:"enabled"`
