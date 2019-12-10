@@ -14,11 +14,15 @@ import (
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
-	*Scope                   `json:"scope,omitempty"`
-	Hostname                 []*ScopeHostname          `json:"hostname,omitempty"`
-	OriginPullHost           *OriginPullHost           `json:"originPullHost,omitempty"`
-	OriginPullCacheExtension *OriginPullCacheExtension `json:"originPullCacheExtension,omitempty"`
-	OriginPullPolicy         []*OriginPullPolicy       `json:"originPullPolicy,omitempty"`
+	*Scope                     `json:"scope,omitempty"`
+	Hostname                   []*ScopeHostname              `json:"hostname,omitempty"`
+	OriginPullHost             *OriginPullHost               `json:"originPullHost,omitempty"`
+	OriginPullCacheExtension   *OriginPullCacheExtension     `json:"originPullCacheExtension,omitempty"`
+	OriginPullPolicy           []*OriginPullPolicy           `json:"originPullPolicy,omitempty"`
+	OriginRequestModification  []*OriginRequestModification  `json:"originRequestModification,omitempty"`
+	OriginResponseModification []*OriginResponseModification `json:"originResponseModification,omitempty"`
+	ClientRequestModification  []*ClientRequestModification  `json:"clientRequestModification,omitempty"`
+	ClientResponseModification []*ClientResponseModification `json:"clientResponseModification,omitempty"`
 }
 
 // NewConfiguration returns an empty configuration

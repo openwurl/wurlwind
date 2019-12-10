@@ -102,3 +102,71 @@ func NewOriginPullPolicyFromState(state map[string]interface{}) *OriginPullPolic
 		StatusCodeMatch:                state["status_code_match"].(string),
 	}
 }
+
+/**********************
+Request & Response Modifications
+*/
+
+// OriginRequestModification ...
+type OriginRequestModification struct {
+	Enabled     bool   `json:"enabled"`
+	AddHeaders  string `json:"addHeaders"`
+	FlowControl string `json:"flowControl"`
+}
+
+// Map converts the struct to a terraform consumable map
+func (o *OriginRequestModification) Map() map[string]interface{} {
+	mod := make(map[string]interface{})
+	mod["enabled"] = o.Enabled
+	mod["add_headers"] = o.AddHeaders
+	mod["flow_control"] = o.FlowControl
+	return mod
+}
+
+// OriginResponseModification ...
+type OriginResponseModification struct {
+	Enabled     bool   `json:"enabled"`
+	AddHeaders  string `json:"addHeaders"`
+	FlowControl string `json:"flowControl"`
+}
+
+// Map converts the struct to a terraform consumable map
+func (o *OriginResponseModification) Map() map[string]interface{} {
+	mod := make(map[string]interface{})
+	mod["enabled"] = o.Enabled
+	mod["add_headers"] = o.AddHeaders
+	mod["flow_control"] = o.FlowControl
+	return mod
+}
+
+// ClientResponseModification ...
+type ClientResponseModification struct {
+	Enabled     bool   `json:"enabled"`
+	AddHeaders  string `json:"addHeaders"`
+	FlowControl string `json:"flowControl"`
+}
+
+// Map converts the struct to a terraform consumable map
+func (o *ClientResponseModification) Map() map[string]interface{} {
+	mod := make(map[string]interface{})
+	mod["enabled"] = o.Enabled
+	mod["add_headers"] = o.AddHeaders
+	mod["flow_control"] = o.FlowControl
+	return mod
+}
+
+// ClientRequestModification ...
+type ClientRequestModification struct {
+	Enabled     bool   `json:"enabled"`
+	AddHeaders  string `json:"addHeaders"`
+	FlowControl string `json:"flowControl"`
+}
+
+// Map converts the struct to a terraform consumable map
+func (o *ClientRequestModification) Map() map[string]interface{} {
+	mod := make(map[string]interface{})
+	mod["enabled"] = o.Enabled
+	mod["add_headers"] = o.AddHeaders
+	mod["flow_control"] = o.FlowControl
+	return mod
+}

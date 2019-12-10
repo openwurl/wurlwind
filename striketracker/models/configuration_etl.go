@@ -92,7 +92,7 @@ func (c *Configuration) OriginHostFromModel() []interface{} {
 }
 
 // =========
-// Origin Pull Cache Extension
+// Origin Pull Cache Extension / stale_cache_extension
 
 // OriginPullCacheExtensionFromState ...
 func (c *Configuration) OriginPullCacheExtensionFromState(state map[string]interface{}) {
@@ -127,7 +127,7 @@ func (c *Configuration) OriginPullCacheExtensionFromModel() []interface{} {
 }
 
 // =========
-// Origin Pull Policy
+// Origin Pull Policy / cache_policy
 
 // OriginPullPolicyFromState ...
 func (c *Configuration) OriginPullPolicyFromState(state []interface{}) error {
@@ -187,4 +187,131 @@ func (c *Configuration) OriginPullPolicyFromModel() []interface{} {
 	}
 
 	return originPullPolicyIface
+}
+
+// =========
+// Request & Response Modifications
+
+// OriginRequestModificationFromState ...
+func (c *Configuration) OriginRequestModificationFromState(state []interface{}) error {
+	modList := []*OriginRequestModification{}
+
+	// extract
+	for _, mod := range state {
+		thisModRaw := mod.(map[string]interface{})
+		thisMod := &OriginRequestModification{
+			Enabled:     thisModRaw["enabled"].(bool),
+			AddHeaders:  thisModRaw["add_headers"].(string),
+			FlowControl: thisModRaw["flow_control"].(string),
+		}
+		modList = append(modList, thisMod)
+	}
+
+	if len(modList) > 0 {
+		c.OriginRequestModification = modList
+	}
+
+	return nil
+}
+
+// OriginRequestModificationFromModel ...
+func (c *Configuration) OriginRequestModificationFromModel() []interface{} {
+	thisMap := make([]interface{}, len(c.OriginRequestModification))
+	for _, mod := range c.OriginRequestModification {
+		thisMap = append(thisMap, mod.Map())
+	}
+	return thisMap
+}
+
+// OriginResponseModificationFromState ...
+func (c *Configuration) OriginResponseModificationFromState(state []interface{}) error {
+	modList := []*OriginResponseModification{}
+
+	// extract
+	for _, mod := range state {
+		thisModRaw := mod.(map[string]interface{})
+		thisMod := &OriginResponseModification{
+			Enabled:     thisModRaw["enabled"].(bool),
+			AddHeaders:  thisModRaw["add_headers"].(string),
+			FlowControl: thisModRaw["flow_control"].(string),
+		}
+		modList = append(modList, thisMod)
+	}
+
+	if len(modList) > 0 {
+		c.OriginResponseModification = modList
+	}
+
+	return nil
+}
+
+// OriginResponseModificationFromModel ...
+func (c *Configuration) OriginResponseModificationFromModel() []interface{} {
+	thisMap := make([]interface{}, len(c.OriginResponseModification))
+	for _, mod := range c.OriginResponseModification {
+		thisMap = append(thisMap, mod.Map())
+	}
+	return thisMap
+}
+
+// ClientRequestModificationFromState ...
+func (c *Configuration) ClientRequestModificationFromState(state []interface{}) error {
+	modList := []*ClientRequestModification{}
+
+	// extract
+	for _, mod := range state {
+		thisModRaw := mod.(map[string]interface{})
+		thisMod := &ClientRequestModification{
+			Enabled:     thisModRaw["enabled"].(bool),
+			AddHeaders:  thisModRaw["add_headers"].(string),
+			FlowControl: thisModRaw["flow_control"].(string),
+		}
+		modList = append(modList, thisMod)
+	}
+
+	if len(modList) > 0 {
+		c.ClientRequestModification = modList
+	}
+
+	return nil
+}
+
+// ClientRequestModificationFromModel ...
+func (c *Configuration) ClientRequestModificationFromModel() []interface{} {
+	thisMap := make([]interface{}, len(c.ClientRequestModification))
+	for _, mod := range c.ClientRequestModification {
+		thisMap = append(thisMap, mod.Map())
+	}
+	return thisMap
+}
+
+// ClientResponseModificationFromState ...
+func (c *Configuration) ClientResponseModificationFromState(state []interface{}) error {
+	modList := []*ClientResponseModification{}
+
+	// extract
+	for _, mod := range state {
+		thisModRaw := mod.(map[string]interface{})
+		thisMod := &ClientResponseModification{
+			Enabled:     thisModRaw["enabled"].(bool),
+			AddHeaders:  thisModRaw["add_headers"].(string),
+			FlowControl: thisModRaw["flow_control"].(string),
+		}
+		modList = append(modList, thisMod)
+	}
+
+	if len(modList) > 0 {
+		c.ClientResponseModification = modList
+	}
+
+	return nil
+}
+
+// ClientResponseModificationFromModel ...
+func (c *Configuration) ClientResponseModificationFromModel() []interface{} {
+	thisMap := make([]interface{}, len(c.ClientResponseModification))
+	for _, mod := range c.ClientResponseModification {
+		thisMap = append(thisMap, mod.Map())
+	}
+	return thisMap
 }
