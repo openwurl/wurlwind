@@ -11,6 +11,58 @@ import (
 
 */
 
+/*
+	Missing:
+		Delivery:
+			Compression
+			StaticHeader
+			HTTPMethods
+			GzipOriginPull
+
+		Cache:
+			CacheKeyModification
+		Security:
+			Geographic Restrictions
+			IP Address Restrictions
+			Referrer Restrictions
+			Url Signing
+		Reporting:
+			OriginPullLogs
+			AccessLogs
+		Origin:
+			OriginPullProtocol
+			FileSegmentation
+			OriginPersistentConnections
+			OriginPull
+
+
+	Missing Next Pass:
+		Delivery:
+			Bandwidth Rate Limiting
+			Force Downloads
+			Custom Mime Types
+			Edge Responses
+			Media Delivery
+			Custom HTTP Response Headers
+			Error Redirects
+			Dynamic Files (Robots)
+			TLS Configuration
+		Cache:
+			Bypass Cache
+			Dynamic File Versioning
+		Security:
+			Basic Auth
+			ASYMMETRIC URL signing
+			IQIYI URL Signing
+		Origin:
+			Custom Client Identification
+			Uncategorized (signed origin pull, fail safe pull, resume download etc)
+		Reporting:
+			Request Receipts
+			Signed AWS Post
+
+*/
+
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
@@ -23,6 +75,9 @@ type Configuration struct {
 	OriginResponseModification []*OriginResponseModification `json:"originResponseModification,omitempty"`
 	ClientRequestModification  []*ClientRequestModification  `json:"clientRequestModification,omitempty"`
 	ClientResponseModification []*ClientResponseModification `json:"clientResponseModification,omitempty"`
+	Compression                *Compression                  `json:"compression,omitempty"`
+	StaticHeader               []*StaticHeader               `json:"staticHeader,omitempty"`
+	HTTPMethods                []*HTTPMethods                `json:"httpMethods,omitempty"`
 }
 
 // NewConfiguration returns an empty configuration

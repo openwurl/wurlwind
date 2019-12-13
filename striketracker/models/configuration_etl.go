@@ -216,9 +216,12 @@ func (c *Configuration) OriginRequestModificationFromState(state []interface{}) 
 
 // OriginRequestModificationFromModel ...
 func (c *Configuration) OriginRequestModificationFromModel() []interface{} {
-	thisMap := make([]interface{}, len(c.OriginRequestModification))
+	thisMap := make([]interface{}, 0)
 	for _, mod := range c.OriginRequestModification {
 		thisMap = append(thisMap, mod.Map())
+	}
+	if len(thisMap) < 1 {
+		return nil
 	}
 	return thisMap
 }
@@ -247,9 +250,12 @@ func (c *Configuration) OriginResponseModificationFromState(state []interface{})
 
 // OriginResponseModificationFromModel ...
 func (c *Configuration) OriginResponseModificationFromModel() []interface{} {
-	thisMap := make([]interface{}, len(c.OriginResponseModification))
+	thisMap := make([]interface{}, 0)
 	for _, mod := range c.OriginResponseModification {
 		thisMap = append(thisMap, mod.Map())
+	}
+	if len(thisMap) < 1 {
+		return nil
 	}
 	return thisMap
 }
@@ -278,9 +284,12 @@ func (c *Configuration) ClientRequestModificationFromState(state []interface{}) 
 
 // ClientRequestModificationFromModel ...
 func (c *Configuration) ClientRequestModificationFromModel() []interface{} {
-	thisMap := make([]interface{}, len(c.ClientRequestModification))
+	thisMap := make([]interface{}, 0)
 	for _, mod := range c.ClientRequestModification {
 		thisMap = append(thisMap, mod.Map())
+	}
+	if len(thisMap) < 1 {
+		return nil
 	}
 	return thisMap
 }
@@ -309,9 +318,23 @@ func (c *Configuration) ClientResponseModificationFromState(state []interface{})
 
 // ClientResponseModificationFromModel ...
 func (c *Configuration) ClientResponseModificationFromModel() []interface{} {
-	thisMap := make([]interface{}, len(c.ClientResponseModification))
+	thisMap := make([]interface{}, 0)
 	for _, mod := range c.ClientResponseModification {
 		thisMap = append(thisMap, mod.Map())
 	}
+
 	return thisMap
+}
+
+// =========
+// Delivery
+
+// DeliveryFromModel ...
+func (c *Configuration) DeliveryFromModel() {
+
+}
+
+// DeliveryFromState ...
+func (c *Configuration) DeliveryFromState() {
+
 }

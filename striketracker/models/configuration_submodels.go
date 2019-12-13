@@ -172,3 +172,62 @@ func (o *ClientRequestModification) Map() map[string]interface{} {
 	mod["flow_control"] = o.FlowControl
 	return mod
 }
+
+/**********************
+Delivery Fields
+*/
+
+// Compression GZIP mime configuration
+type Compression struct {
+	Enabled bool   `json:"enabled"`
+	GZIP    string `json:"gzip"`
+	Level   int    `json:"level"`
+	Mime    string `json:"mime"`
+}
+
+// Map returns a terraform-consumable map of the compression struct
+func (c *Compression) Map() map[string]interface{} {
+	cm := make(map[string]interface{})
+	cm["enabled"] = c.Enabled
+	cm["gzip"] = c.GZIP
+	cm["level"] = c.Level
+	cm["mime"] = c.Mime
+	return cm
+}
+
+// StaticHeader Headers to arbitrarily add
+type StaticHeader struct {
+	Enabled       bool   `json:"enabled"`
+	HTTP          string `json:"http"`
+	OriginPull    string `json:"originPull"`
+	ClientRequest string `json:"clientRequest"`
+}
+
+// Map returns a terraform-consumable map of the compression struct
+func (s *StaticHeader) Map() map[string]interface{} {
+	shm := make(map[string]interface{})
+	shm["enabled"] = s.Enabled
+	shm["origin_pull"] = s.OriginPull
+	shm["client_request"] = s.ClientRequest
+	shm["http"] = s.HTTP
+	return shm
+}
+
+// HTTPMethods configures HTTP methods allowed
+type HTTPMethods struct {
+	Enabled  bool   `json:"enabled"`
+	PassThru string `json:"passThru"`
+}
+
+// Map returns a terraform-consumable map of the compression struct
+func (h *HTTPMethods) Map() map[string]interface{} {
+	hmm := make(map[string]interface{})
+	hmm["enabled"] = h.Enabled
+	hmm["passthru"] = h.PassThru
+	return hmm
+}
+
+// GzipOriginPull ...
+type GzipOriginPull struct {
+	Enabled bool `json:"enabled"`
+}
