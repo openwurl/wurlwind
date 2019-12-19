@@ -13,7 +13,7 @@ import (
 // ScopeFromState updates the models scope details from state
 func (c *Configuration) ScopeFromState(state map[string]interface{}) {
 	c.Scope = &Scope{}
-	debug.Log("scope-state", "PLATFORM: %v", state["platform"])
+	debug.Log("SCOPE_STATE", "PLATFORM: %v", state["platform"])
 	if state["platform"] != nil {
 		c.Platform = state["platform"].(string)
 	}
@@ -331,6 +331,10 @@ func (c *Configuration) ClientResponseModificationFromModel() []interface{} {
 
 // DeliveryFromModel ...
 func (c *Configuration) DeliveryFromModel() {
+	// compression
+	// static header
+	// http methods
+	// gzip origin pull
 
 }
 
