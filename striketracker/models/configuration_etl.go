@@ -112,16 +112,17 @@ func (c *Configuration) OriginPullCacheExtensionFromState(state map[string]inter
 
 // OriginPullCacheExtensionFromModel ...
 func (c *Configuration) OriginPullCacheExtensionFromModel() []interface{} {
-	originPullCacheExtensionSliceIface := []interface{}{}
+	originPullCacheExtensionSliceIface := make([]interface{}, 0)
 	originPullCacheExtensionIface := make(map[string]interface{})
 
 	if c.OriginPullCacheExtension != nil {
 		originPullCacheExtensionIface["enabled"] = c.OriginPullCacheExtension.Enabled
 		originPullCacheExtensionIface["expired_cache_extension"] = c.OriginPullCacheExtension.ExpiredCacheExtension
 		originPullCacheExtensionIface["origin_unreachable_cache_extension"] = c.OriginPullCacheExtension.OriginUnreachableCacheExtension
+		originPullCacheExtensionSliceIface = append(originPullCacheExtensionSliceIface, originPullCacheExtensionIface)
 	}
 
-	originPullCacheExtensionSliceIface = append(originPullCacheExtensionSliceIface, originPullCacheExtensionIface)
+	debug.Log("STALE CACHE EXTENSION", fmt.Sprintf("%v", originPullCacheExtensionSliceIface))
 
 	return originPullCacheExtensionSliceIface
 }
