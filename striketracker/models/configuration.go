@@ -78,6 +78,16 @@ type Configuration struct {
 	Compression                *Compression                  `json:"compression,omitempty"`
 	StaticHeader               []*StaticHeader               `json:"staticHeader,omitempty"`
 	HTTPMethods                []*HTTPMethods                `json:"httpMethods,omitempty"`
+	CustomMimeType             []*CustomMimeType             `json:"customMimeType,omitempty"`
+	BandwidthLimit             *BandwidthLimit               `json:"bandWidthLimit,omitempty"`
+	BandwidthRateLimit         *BandwidthRateLimit           `json:"bandwidthRateLimit,omitempty"`
+	ContentDispositionByHeader []*ContentDispositionByHeader `json:"contentDispositionByHeader,omitempty"`
+	DynamicCacheRule           []*DynamicCacheRule           `json:"dynamicCacheRule,omitempty"`
+	FLVPseudoStreaming         *FLVPseudoStreaming           `json:"flvPseudoStreaming,omitempty"`
+	TimePseudoStreaming        *TimePseudoStreaming          `json:"timePseudoStreaming,omitempty"`
+	ResponseHeader             *ResponseHeader               `json:"responseHeader,omitempty"`
+	RedirectExceptions         *RedirectExceptions           `json:"redirectExceptions,omitempty"`
+	RedirectMappings           []*RedirectMappings           `json:"redirectMappings,omitempty"`
 }
 
 // NewConfiguration returns an empty configuration

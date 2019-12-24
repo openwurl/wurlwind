@@ -53,25 +53,25 @@ Origin Pull Policy
 type OriginPullPolicy struct {
 	Enabled                        bool   `json:"enabled"`
 	ExpirePolicy                   string `json:"expirePolicy" validate:"oneof=CACHE_CONTROL INGEST LAST_MODIFY NEVER_EXPIRE DO_NOT_CACHE"`
-	ExpireSeconds                  *int   `json:"expireSeconds"`
-	ForceBypassCache               bool   `json:"forceBypassCache"`
-	HonorMustRevalidate            bool   `json:"honorMustRevalidate"`
-	HonorNoCache                   bool   `json:"honorNoCache"`
-	HonorNoStore                   bool   `json:"honorNoStore"`
-	HonorPrivate                   bool   `json:"honorPrivate"`
-	HonorSMaxAge                   bool   `json:"honorSMaxAge"`
-	HTTPHeaders                    string `json:"httpHeaders"` // string list
-	MustRevalidateToNoCache        bool   `json:"mustRevalidateToNoCache"`
-	NoCacheBehavior                string `json:"noCacheBehavior"`
-	UpdateHTTPHeadersOn304Response bool   `json:"updateHttpHeadersOn304Response"`
-	DefaultCacheBehavior           string `json:"defaultCacheBehavior"` // Default behaviour when the policy is "Cache Control" and the "Cache-Control" header is missing. ttl & ...?
-	MaxAgeZeroToNoCache            bool   `json:"maxAgeZeroToNoCache"`
-	BypassCacheIdentifier          string `json:"bypassCacheIdentifier"` // no-cache only
-	ContentTypeFilter              string `json:"contentTypeFilter"`     // string list
-	HeaderFilter                   string `json:"headerFilter"`          // string list
-	MethodFilter                   string `json:"methodFilter"`          // string list
-	PathFilter                     string `json:"pathFilter"`            // string list
-	StatusCodeMatch                string `json:"statusCodeMatch"`       // string list
+	ExpireSeconds                  *int   `json:"expireSeconds,omitempty"`
+	ForceBypassCache               bool   `json:"forceBypassCache,omitempty"`
+	HonorMustRevalidate            bool   `json:"honorMustRevalidate,omitempty"`
+	HonorNoCache                   bool   `json:"honorNoCache,omitempty"`
+	HonorNoStore                   bool   `json:"honorNoStore,omitempty"`
+	HonorPrivate                   bool   `json:"honorPrivate,omitempty"`
+	HonorSMaxAge                   bool   `json:"honorSMaxAge,omitempty"`
+	HTTPHeaders                    string `json:"httpHeaders,omitempty"` // string list
+	MustRevalidateToNoCache        bool   `json:"mustRevalidateToNoCache,omitempty"`
+	NoCacheBehavior                string `json:"noCacheBehavior,omitempty"`
+	UpdateHTTPHeadersOn304Response bool   `json:"updateHttpHeadersOn304Response,omitempty"`
+	DefaultCacheBehavior           string `json:"defaultCacheBehavior,omitempty"` // Default behaviour when the policy is "Cache Control" and the "Cache-Control" header is missing. ttl & ...?
+	MaxAgeZeroToNoCache            bool   `json:"maxAgeZeroToNoCache,omitempty"`
+	BypassCacheIdentifier          string `json:"bypassCacheIdentifier,omitempty"` // no-cache only
+	ContentTypeFilter              string `json:"contentTypeFilter,omitempty"`     // string list
+	HeaderFilter                   string `json:"headerFilter,omitempty"`          // string list
+	MethodFilter                   string `json:"methodFilter,omitempty"`          // string list
+	PathFilter                     string `json:"pathFilter,omitempty"`            // string list
+	StatusCodeMatch                string `json:"statusCodeMatch,omitempty"`       // string list
 }
 
 // NewOriginPullPolicyFromState returns a configured origin pull policy from a state index
@@ -103,6 +103,11 @@ func NewOriginPullPolicyFromState(state map[string]interface{}) *OriginPullPolic
 	}
 }
 
+// GzipOriginPull ...
+type GzipOriginPull struct {
+	Enabled bool `json:"enabled"`
+}
+
 /**********************
 Request & Response Modifications
 */
@@ -111,9 +116,9 @@ Request & Response Modifications
 
 // OriginRequestModification ...
 type OriginRequestModification struct {
-	Enabled     bool   `json:"enabled"`
-	AddHeaders  string `json:"addHeaders"`
-	FlowControl string `json:"flowControl"`
+	Enabled     bool   `json:"enabled,omitempty"`
+	AddHeaders  string `json:"addHeaders,omitempty"`
+	FlowControl string `json:"flowControl,omitempty"`
 }
 
 // Map converts the struct to a terraform consumable map
@@ -127,9 +132,9 @@ func (o *OriginRequestModification) Map() map[string]interface{} {
 
 // OriginResponseModification ...
 type OriginResponseModification struct {
-	Enabled     bool   `json:"enabled"`
-	AddHeaders  string `json:"addHeaders"`
-	FlowControl string `json:"flowControl"`
+	Enabled     bool   `json:"enabled,omitempty"`
+	AddHeaders  string `json:"addHeaders,omitempty"`
+	FlowControl string `json:"flowControl,omitempty"`
 }
 
 // Map converts the struct to a terraform consumable map
@@ -143,9 +148,9 @@ func (o *OriginResponseModification) Map() map[string]interface{} {
 
 // ClientResponseModification ...
 type ClientResponseModification struct {
-	Enabled     bool   `json:"enabled"`
-	AddHeaders  string `json:"addHeaders"`
-	FlowControl string `json:"flowControl"`
+	Enabled     bool   `json:"enabled,omitempty"`
+	AddHeaders  string `json:"addHeaders,omitempty"`
+	FlowControl string `json:"flowControl,omitempty"`
 }
 
 // Map converts the struct to a terraform consumable map
@@ -159,9 +164,9 @@ func (o *ClientResponseModification) Map() map[string]interface{} {
 
 // ClientRequestModification ...
 type ClientRequestModification struct {
-	Enabled     bool   `json:"enabled"`
-	AddHeaders  string `json:"addHeaders"`
-	FlowControl string `json:"flowControl"`
+	Enabled     bool   `json:"enabled,omitempty"`
+	AddHeaders  string `json:"addHeaders,omitempty"`
+	FlowControl string `json:"flowControl,omitempty"`
 }
 
 // Map converts the struct to a terraform consumable map
@@ -179,10 +184,10 @@ Delivery Fields
 
 // Compression GZIP mime configuration
 type Compression struct {
-	Enabled bool   `json:"enabled"`
-	GZIP    string `json:"gzip"`
-	Level   int    `json:"level"`
-	Mime    string `json:"mime"`
+	Enabled bool   `json:"enabled,omitempty"`
+	GZIP    string `json:"gzip,omitempty"`
+	Level   int    `json:"level,string,omitempty"`
+	Mime    string `json:"mime,omitempty"`
 }
 
 // Map returns a terraform-consumable map of the compression struct
@@ -197,10 +202,14 @@ func (c *Compression) Map() map[string]interface{} {
 
 // StaticHeader Headers to arbitrarily add
 type StaticHeader struct {
-	Enabled       bool   `json:"enabled"`
-	HTTP          string `json:"http"`
-	OriginPull    string `json:"originPull"`
-	ClientRequest string `json:"clientRequest"`
+	Enabled                  bool   `json:"enabled,omitempty"`
+	HTTP                     string `json:"http,omitempty"`
+	OriginPull               string `json:"originPull,omitempty"`
+	ClientRequest            string `json:"clientRequest,omitempty"`
+	MethodFilter             string `json:"methodFilter,omitempty"` // comma delimited
+	PathFilter               string `json:"pathFilter,omitempty"`   // comma delimited
+	HeaderFilter             string `json:"headerFilter,omitempty"` // comma delimited
+	ClientResponseCodeFilter string `json:"clientResponseCodeFilter,omitempty"`
 }
 
 // Map returns a terraform-consumable map of the compression struct
@@ -227,7 +236,101 @@ func (h *HTTPMethods) Map() map[string]interface{} {
 	return hmm
 }
 
-// GzipOriginPull ...
-type GzipOriginPull struct {
-	Enabled bool `json:"enabled"`
+// CustomMimeType ordered []CustomMimeType
+type CustomMimeType struct {
+	Enabled      bool   `json:"enabled,omitempty"`
+	Code         string `json:"code,omitempty"`         // comma delimited
+	ExtensionMap string `json:"extensionMap,omitempty"` // comma delimited
+	MethodFilter string `json:"methodFilter,omitempty"` // comma delimited
+	PathFilter   string `json:"pathFilter,omitempty"`   // comma delimited
+	HeaderFilter string `json:"headerFilter,omitempty"` // comma delimited
+}
+
+// Map returns a terraform-consumable map of the custom mime type struct
+func (c *CustomMimeType) Map() map[string]interface{} {
+	cmt := make(map[string]interface{})
+	cmt["enabled"] = c.Enabled
+	cmt["code"] = c.Code
+	cmt["extensionMap"] = c.ExtensionMap
+	cmt["methodFilter"] = c.MethodFilter
+	cmt["pathFilter"] = c.PathFilter
+	cmt["headerFilter"] = c.HeaderFilter
+	return cmt
+}
+
+// ContentDispositionByHeader ordered []ContentDispositionByHeader Controls the Content-Disposition header on the
+// responses from the Origin using a pattern matched against the value of any
+//HTTP header present in an end-user's request for content
+type ContentDispositionByHeader struct {
+	Enabled              bool   `json:"enabled,omitempty"`
+	HeaderFieldName      string `json:"headerFieldName,omitempty"`
+	HeaderValueMatch     string `json:"headerValueMatch,omitempty"` // comma delimited
+	DefaultType          string `json:"defaultType,omitempty" validate:"oneof=inline attachment"`
+	OverrideOriginHeader bool   `json:"overrideOriginHeader,omitempty"`
+	MethodFilter         string `json:"methodFilter,omitempty"` // comma delimited
+	PathFilter           string `json:"pathFilter,omitempty"`   // comma delimited
+	HeaderFilter         string `json:"headerFilter,omitempty"` // comma delimited
+}
+
+// TODO maps for all
+
+// BandwidthLimit ...
+type BandwidthLimit struct {
+	Enabled bool   `json:"enabled,omitempty"`
+	Rule    string `json:"rule,omitempty"`   // | delimited
+	Values  string `json:"values,omitempty"` // ex. 1mbps
+}
+
+// BandwidthRateLimit ...
+type BandwidthRateLimit struct {
+	Enabled            bool   `json:"enabled,omitempty"`
+	InitialBurstName   string `json:"initialBurstName,omitempty"`   // ex. ri=
+	SustainedRateName  string `json:"sustainedRateName,omitempty"`  // ex. rs=
+	InitialBurstUnits  string `json:"initialBurstUnits,omitempty"`  // ex. byte
+	SustainedRateUnits string `json:"sustainedRateUnits,omitempty"` // ex. kilobit
+}
+
+// DynamicCacheRule ordered []DynamicCacheRule
+type DynamicCacheRule struct {
+	Enabled      bool   `json:"enabled,omitempty"`
+	MethodFilter string `json:"methodFilter,omitempty"` // comma delimited
+	PathFilter   string `json:"pathFilter,omitempty"`   // comma delimited
+	HeaderFilter string `json:"headerFilter,omitempty"` // comma delimited
+	StatusCode   int    `json:"statusCode,omitempty"`
+	Headers      string `json:"headers,omitempty"` // comma delimited
+}
+
+// FLVPseudoStreaming ...
+type FLVPseudoStreaming struct {
+	Enabled                     bool   `json:"enabled,omitempty"`
+	JumpToByteInitialBytesParam string `json:"jumpToByteInitialBytesParam,omitempty"` // ex. ib
+	JumpToByteStartOffsetParam  string `json:"jumpToByteStartOffsetParam,omitempty"`  // ex. fs
+}
+
+// TimePseudoStreaming ...
+type TimePseudoStreaming struct {
+	Enabled              bool   `json:"enabled,omitempty"`
+	JumpToTimeStartParam string `json:"jumpToTimeStartParam,omitempty"` // ex. start
+	JumpToTimeEndParam   string `json:"jumpToTimeEndParam,omitempty"`   // ex. end
+}
+
+// ResponseHeader ...
+type ResponseHeader struct {
+	Enabled     bool   `json:"enabled,omitempty"`
+	HTTP        string `json:"http,omitempty"`
+	EnabledETAg bool   `json:"enabledETag,omitempty"`
+}
+
+// RedirectExceptions ...
+type RedirectExceptions struct {
+	Enabled           bool   `json:"enabled,omitempty"`
+	RedirectAgentCode string `json:"redirectAgentCode,omitempty"`
+}
+
+// RedirectMappings ordered []RedirectMappings
+type RedirectMappings struct {
+	Enabled          bool   `json:"enabled,omitempty"`
+	Code             int    `json:"code,omitempty"`
+	RedirectURL      string `json:"redirectURL,omitempty"`
+	ReplacementToken string `json:"replacementToken,omitempty"`
 }
