@@ -11,16 +11,19 @@ const terraformTag = "tf"
 // MapFromStruct extracts a map[string]interface from a HW API model if it uses the tf struct tag
 // should only be used on structs that contain generics
 func MapFromStruct(s interface{}) map[string]interface{} {
+	// make sure our interface isn't empty
 	if s != nil {
 		ret := make(map[string]interface{})
 
 		reflection := reflect.ValueOf(s).Elem()
 
+		// iterate the fields in the interface (struct)
 		for i := 0; i < reflection.NumField(); i++ {
 			thisField := reflection.Field(i)
 			thisType := reflection.Type().Field(i)
 			tag := thisType.Tag
 
+			// check for our tag on this field
 			if val, ok := tag.Lookup(terraformTag); ok {
 				// Dereference pointers within the struct to their types
 				var thisFieldDeref reflect.Value
@@ -30,6 +33,7 @@ func MapFromStruct(s interface{}) map[string]interface{} {
 					thisFieldDeref = thisField
 				}
 
+				// assign map from this struct field
 				ret[val] = thisFieldDeref.Interface()
 			}
 		}
@@ -45,11 +49,13 @@ func StructFromMap(model interface{}, m map[string]interface{}) interface{} {
 	if m != nil {
 		rv := reflect.ValueOf(model).Elem()
 
+		// iterate fields in our interface/struct
 		for i := 0; i < rv.NumField(); i++ {
 			thisField := rv.Field(i)
 			thisType := rv.Type().Field(i)
 			tag := thisType.Tag
 
+			// check to make sure it is a tagged field
 			if val, ok := tag.Lookup(terraformTag); ok {
 
 				// Dereference pointers within the struct to their types
@@ -61,6 +67,7 @@ func StructFromMap(model interface{}, m map[string]interface{}) interface{} {
 					thisFieldDeref = thisField
 				}
 
+				// detect the type and cast our map value to that type in that field
 				switch thisFieldDeref.Kind() {
 				case reflect.Int:
 					if v, ok := m[val]; ok {
@@ -82,6 +89,7 @@ func StructFromMap(model interface{}, m map[string]interface{}) interface{} {
 		}
 		return model
 	}
+	// We don't want to make empty things where there is nothing
 	return nil
 
 }
