@@ -330,16 +330,13 @@ func (c *Configuration) ClientResponseModificationFromModel() []interface{} {
 // =========
 // Delivery
 
-// DeliveryFromModel ...
-func (c *Configuration) DeliveryFromModel() {
-	// compression
-	// static header
-	// http methods
-	// gzip origin pull
-
+func (c *Configuration) DeliveryFieldsFromModel() (*Compression, []*StaticHeader) {
+	return c.Compression, c.StaticHeader
 }
 
-// DeliveryFromState ...
-func (c *Configuration) DeliveryFromState() {
+// Compression
+
+// CompressionFromState
+func (c *Configuration) CompressionFromState(state map[string]interface{}) {
 
 }
