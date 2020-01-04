@@ -63,9 +63,9 @@ type HostList struct {
 type Scope struct {
 	Response
 	ID          int    `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Platform    string `json:"platform" validate:"required"`
-	Path        string `json:"path" validate:"required"`
+	Name        string `json:"name,omitempty" tf:"name"`
+	Platform    string `json:"platform" validate:"required" tf:"platform"`
+	Path        string `json:"path" validate:"required" tf:"path"`
 	CreatedDate string `json:"createdDate,omitempty"`
 	UpdatedDate string `json:"updatedDate,omitempty"`
 }

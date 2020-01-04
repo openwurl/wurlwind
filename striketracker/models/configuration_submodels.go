@@ -12,6 +12,7 @@ Hostname
 
 // ScopeHostname is a single field that appears in a slice
 // and contains the hostnames attached to a configuration scope
+// Does not use reflect based packing due to unique structure
 type ScopeHostname struct {
 	Domain string `json:"domain"`
 	Root   bool   `json:"root,omitempty"`
@@ -35,9 +36,9 @@ Origin Pull Cache Extension
 
 // OriginPullCacheExtension encapsulates stale cache extension settings
 type OriginPullCacheExtension struct {
-	Enabled                         bool `json:"enabled,omitempty"`
-	ExpiredCacheExtension           *int `json:"expiredCacheExtension" validate:"required"`
-	OriginUnreachableCacheExtension *int `json:"originUnreachableCacheExtension,omitempty"`
+	Enabled                         bool `json:"enabled,omitempty" tf:"enabled"`
+	ExpiredCacheExtension           *int `json:"expiredCacheExtension" validate:"required" tf:"expired_cache_extension"`
+	OriginUnreachableCacheExtension *int `json:"originUnreachableCacheExtension,omitempty" tf:"origin_unreachable_cache_extension"`
 }
 
 /**********************
@@ -46,16 +47,16 @@ Origin Pull host
 
 // OriginPullHost contains the origin IDs and path for a scope
 type OriginPullHost struct {
-	Primary   int    `json:"primary,omitempty"`
-	Secondary int    `json:"secondary,omitempty"`
-	Path      string `json:"path,omitempty"`
+	Primary   int    `json:"primary,omitempty" tf:"primary"`
+	Secondary int    `json:"secondary,omitempty" tf:"secondary"`
+	Path      string `json:"path,omitempty" tf:"path"`
 }
 
 /**********************
 Origin Pull Policy
 */
 
-// OriginPullPolicy encapsulates origib pull policy settings
+// OriginPullPolicy encapsulates origin pull policy (cache) settings
 type OriginPullPolicy struct {
 	Enabled                        bool   `json:"enabled" tf:"enabled"`
 	ExpirePolicy                   string `json:"expirePolicy" validate:"oneof=CACHE_CONTROL INGEST LAST_MODIFY NEVER_EXPIRE DO_NOT_CACHE" tf:"expire_policy"`
@@ -80,35 +81,6 @@ type OriginPullPolicy struct {
 	StatusCodeMatch                string `json:"statusCodeMatch,omitempty" tf:"status_code_match"`             // string list
 }
 
-// NewOriginPullPolicyFromState returns a configured origin pull policy from a state index
-func NewOriginPullPolicyFromState(state map[string]interface{}) *OriginPullPolicy {
-
-	expireSeconds := state["expire_seconds"].(int)
-	return &OriginPullPolicy{
-		Enabled:                        state["enabled"].(bool),
-		ExpirePolicy:                   state["expire_policy"].(string),
-		ExpireSeconds:                  &expireSeconds,
-		ForceBypassCache:               state["force_bypass_cache"].(bool),
-		HonorMustRevalidate:            state["honor_must_revalidate"].(bool),
-		HonorNoCache:                   state["honor_must_revalidate"].(bool),
-		HonorNoStore:                   state["honor_no_store"].(bool),
-		HonorPrivate:                   state["honor_private"].(bool),
-		HonorSMaxAge:                   state["honor_smax_age"].(bool),
-		HTTPHeaders:                    state["http_headers"].(string),
-		MustRevalidateToNoCache:        state["must_revalidate_to_no_cache"].(bool),
-		NoCacheBehavior:                state["no_cache_behavior"].(string),
-		UpdateHTTPHeadersOn304Response: state["update_http_headers_on_304_response"].(bool),
-		DefaultCacheBehavior:           state["default_cache_behavior"].(string),
-		MaxAgeZeroToNoCache:            state["max_age_zero_to_no_cache"].(bool),
-		BypassCacheIdentifier:          state["bypass_cache_identifier"].(string),
-		ContentTypeFilter:              state["content_type_filter"].(string),
-		HeaderFilter:                   state["header_filter"].(string),
-		MethodFilter:                   state["method_filter"].(string),
-		PathFilter:                     state["path_filter"].(string),
-		StatusCodeMatch:                state["status_code_match"].(string),
-	}
-}
-
 // GzipOriginPull ...
 type GzipOriginPull struct {
 	Enabled bool `json:"enabled"`
@@ -118,70 +90,48 @@ type GzipOriginPull struct {
 Request & Response Modifications
 */
 
-// TODO: This is MVP fields for modifications, however there are more that need implemented
-
 // OriginRequestModification ...
 type OriginRequestModification struct {
-	Enabled     bool   `json:"enabled,omitempty"`
-	AddHeaders  string `json:"addHeaders,omitempty"`
-	FlowControl string `json:"flowControl,omitempty"`
-}
-
-// Map converts the struct to a terraform consumable map
-func (o *OriginRequestModification) Map() map[string]interface{} {
-	mod := make(map[string]interface{})
-	mod["enabled"] = o.Enabled
-	mod["add_headers"] = o.AddHeaders
-	mod["flow_control"] = o.FlowControl
-	return mod
+	Enabled       bool   `json:"enabled,omitempty" tf:"enabled"`
+	AddHeaders    string `json:"addHeaders,omitempty" tf:"add_headers"`
+	FlowControl   string `json:"flowControl,omitempty" tf:"flow_control"`
+	URLPattern    string `json:"urlPattern,omitempty" tf:"url_pattern"`
+	URLRewrite    string `json:"urlRewrite,omitempty" tf:"url_rewrite"`
+	HeaderPattern string `json:"headerPattern,omitempty" tf:"header_pattern"`
+	HeaderRewrite string `json:"headerRewrite,omitempty" tf:"header_rewrite"`
 }
 
 // OriginResponseModification ...
 type OriginResponseModification struct {
-	Enabled     bool   `json:"enabled,omitempty"`
-	AddHeaders  string `json:"addHeaders,omitempty"`
-	FlowControl string `json:"flowControl,omitempty"`
-}
-
-// Map converts the struct to a terraform consumable map
-func (o *OriginResponseModification) Map() map[string]interface{} {
-	mod := make(map[string]interface{})
-	mod["enabled"] = o.Enabled
-	mod["add_headers"] = o.AddHeaders
-	mod["flow_control"] = o.FlowControl
-	return mod
+	Enabled       bool   `json:"enabled,omitempty" tf:"enabled"`
+	AddHeaders    string `json:"addHeaders,omitempty" tf:"add_headers"`
+	FlowControl   string `json:"flowControl,omitempty" tf:"flow_control"`
+	URLPattern    string `json:"urlPattern,omitempty" tf:"url_pattern"`
+	URLRewrite    string `json:"urlRewrite,omitempty" tf:"url_rewrite"`
+	HeaderPattern string `json:"headerPattern,omitempty" tf:"header_pattern"`
+	HeaderRewrite string `json:"headerRewrite,omitempty" tf:"header_rewrite"`
 }
 
 // ClientResponseModification ...
 type ClientResponseModification struct {
-	Enabled     bool   `json:"enabled,omitempty"`
-	AddHeaders  string `json:"addHeaders,omitempty"`
-	FlowControl string `json:"flowControl,omitempty"`
-}
-
-// Map converts the struct to a terraform consumable map
-func (o *ClientResponseModification) Map() map[string]interface{} {
-	mod := make(map[string]interface{})
-	mod["enabled"] = o.Enabled
-	mod["add_headers"] = o.AddHeaders
-	mod["flow_control"] = o.FlowControl
-	return mod
+	Enabled       bool   `json:"enabled,omitempty" tf:"enabled"`
+	AddHeaders    string `json:"addHeaders,omitempty" tf:"add_headers"`
+	FlowControl   string `json:"flowControl,omitempty" tf:"flow_control"`
+	URLPattern    string `json:"urlPattern,omitempty" tf:"url_pattern"`
+	URLRewrite    string `json:"urlRewrite,omitempty" tf:"url_rewrite"`
+	HeaderPattern string `json:"headerPattern,omitempty" tf:"header_pattern"`
+	HeaderRewrite string `json:"headerRewrite,omitempty" tf:"header_rewrite"`
 }
 
 // ClientRequestModification ...
 type ClientRequestModification struct {
-	Enabled     bool   `json:"enabled,omitempty"`
-	AddHeaders  string `json:"addHeaders,omitempty"`
-	FlowControl string `json:"flowControl,omitempty"`
-}
-
-// Map converts the struct to a terraform consumable map
-func (o *ClientRequestModification) Map() map[string]interface{} {
-	mod := make(map[string]interface{})
-	mod["enabled"] = o.Enabled
-	mod["add_headers"] = o.AddHeaders
-	mod["flow_control"] = o.FlowControl
-	return mod
+	Enabled       bool   `json:"enabled,omitempty" tf:"enabled"`
+	AddHeaders    string `json:"addHeaders,omitempty" tf:"add_headers"`
+	FlowControl   string `json:"flowControl,omitempty" tf:"flow_control"`
+	URLPattern    string `json:"urlPattern,omitempty" tf:"url_pattern"`
+	URLRewrite    string `json:"urlRewrite,omitempty" tf:"url_rewrite"`
+	HeaderPattern string `json:"headerPattern,omitempty" tf:"header_pattern"`
+	HeaderRewrite string `json:"headerRewrite,omitempty" tf:"header_rewrite"`
 }
 
 /**********************
@@ -192,18 +142,8 @@ Delivery Fields
 type Compression struct {
 	Enabled bool   `json:"enabled,omitempty" tf:"enabled"`
 	GZIP    string `json:"gzip,omitempty" tf:"gzip"`
-	Level   int    `json:"level,string,omitempty" tf:"level"`
+	Level   *int   `json:"level,string,omitempty" tf:"level"`
 	Mime    string `json:"mime,omitempty" tf:"mime"`
-}
-
-// Map returns a terraform-consumable map of the compression struct
-func (c *Compression) Map() map[string]interface{} {
-	cm := make(map[string]interface{})
-	cm["enabled"] = c.Enabled
-	cm["gzip"] = c.GZIP
-	cm["level"] = c.Level
-	cm["mime"] = c.Mime
-	return cm
 }
 
 // StaticHeader Headers to arbitrarily add
@@ -218,28 +158,10 @@ type StaticHeader struct {
 	ClientResponseCodeFilter string `json:"clientResponseCodeFilter,omitempty" tf:"client_response_code_filter"`
 }
 
-// Map returns a terraform-consumable map of the compression struct
-func (s *StaticHeader) Map() map[string]interface{} {
-	shm := make(map[string]interface{})
-	shm["enabled"] = s.Enabled
-	shm["origin_pull"] = s.OriginPull
-	shm["client_request"] = s.ClientRequest
-	shm["http"] = s.HTTP
-	return shm
-}
-
 // HTTPMethods configures HTTP methods allowed
 type HTTPMethods struct {
-	Enabled  bool   `json:"enabled"`
-	PassThru string `json:"passThru"`
-}
-
-// Map returns a terraform-consumable map of the compression struct
-func (h *HTTPMethods) Map() map[string]interface{} {
-	hmm := make(map[string]interface{})
-	hmm["enabled"] = h.Enabled
-	hmm["passthru"] = h.PassThru
-	return hmm
+	Enabled  bool   `json:"enabled" tf:"enabled"`
+	PassThru string `json:"passThru" tf:"passthru"`
 }
 
 // CustomMimeType ordered []CustomMimeType
@@ -250,18 +172,6 @@ type CustomMimeType struct {
 	MethodFilter string `json:"methodFilter,omitempty"` // comma delimited
 	PathFilter   string `json:"pathFilter,omitempty"`   // comma delimited
 	HeaderFilter string `json:"headerFilter,omitempty"` // comma delimited
-}
-
-// Map returns a terraform-consumable map of the custom mime type struct
-func (c *CustomMimeType) Map() map[string]interface{} {
-	cmt := make(map[string]interface{})
-	cmt["enabled"] = c.Enabled
-	cmt["code"] = c.Code
-	cmt["extension_map"] = c.ExtensionMap
-	cmt["method_filter"] = c.MethodFilter
-	cmt["path_filter"] = c.PathFilter
-	cmt["header_filter"] = c.HeaderFilter
-	return cmt
 }
 
 // ContentDispositionByHeader ordered []ContentDispositionByHeader Controls the Content-Disposition header on the
@@ -277,8 +187,6 @@ type ContentDispositionByHeader struct {
 	PathFilter           string `json:"pathFilter,omitempty" tf:"path_filter"`     // comma delimited
 	HeaderFilter         string `json:"headerFilter,omitempty" tf:"header_filter"` // comma delimited
 }
-
-// TODO maps for all
 
 // BandwidthLimit ...
 type BandwidthLimit struct {
@@ -322,9 +230,9 @@ type TimePseudoStreaming struct {
 
 // ResponseHeader ...
 type ResponseHeader struct {
-	Enabled     bool   `json:"enabled,omitempty"`
-	HTTP        string `json:"http,omitempty"`
-	EnabledETAg bool   `json:"enabledETag,omitempty"`
+	Enabled    bool   `json:"enabled,omitempty" tf:"enabled"`
+	HTTP       string `json:"http,omitempty" tf:"http"`
+	EnableETAg bool   `json:"enableETag,omitempty" tf:"enable_etag"`
 }
 
 // RedirectExceptions ...

@@ -16,7 +16,7 @@ func TestMapFromStruct(t *testing.T) {
 			&Compression{
 				Enabled: true,
 				GZIP:    "txt,js,html,css",
-				Level:   5,
+				Level:   createIntPointer(5),
 				Mime:    "test/*,application/x-mpegUR",
 			},
 			map[string]interface{}{
@@ -35,7 +35,7 @@ func TestMapFromStruct(t *testing.T) {
 				DefaultCacheBehavior: "ttl",
 			},
 			map[string]interface{}{
-				"ttTestName":                          "Origin Pull Policy",
+				"ttTestName":                          "Origin Pull Policy (pointer int)",
 				"enabled":                             true,
 				"expire_policy":                       "CACHE_CONTROL",
 				"expire_seconds":                      5,
@@ -111,7 +111,7 @@ func TestStructFromMap(t *testing.T) {
 			&Compression{
 				Enabled: true,
 				GZIP:    "txt,js,html,css",
-				Level:   5,
+				Level:   createIntPointer(5),
 				Mime:    "test/*,application/x-mpegUR",
 			},
 		},

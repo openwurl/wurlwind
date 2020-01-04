@@ -77,7 +77,8 @@ type Configuration struct {
 	ClientResponseModification []*ClientResponseModification `json:"clientResponseModification,omitempty"`
 	Compression                *Compression                  `json:"compression,omitempty"`
 	StaticHeader               []*StaticHeader               `json:"staticHeader,omitempty"`
-	HTTPMethods                []*HTTPMethods                `json:"httpMethods,omitempty"`
+	HTTPMethods                *HTTPMethods                  `json:"httpMethods,omitempty"`
+	ResponseHeader             *ResponseHeader               `json:"responseHeader,omitempty"`
 	//CustomMimeType             []*CustomMimeType             `json:"customMimeType,omitempty"`
 	//BandwidthLimit             *BandwidthLimit               `json:"bandWidthLimit,omitempty"`
 	//BandwidthRateLimit         *BandwidthRateLimit           `json:"bandwidthRateLimit,omitempty"`
@@ -85,7 +86,6 @@ type Configuration struct {
 	//DynamicCacheRule           []*DynamicCacheRule           `json:"dynamicCacheRule,omitempty"`
 	//FLVPseudoStreaming         *FLVPseudoStreaming           `json:"flvPseudoStreaming,omitempty"`
 	//TimePseudoStreaming        *TimePseudoStreaming          `json:"timePseudoStreaming,omitempty"`
-	//ResponseHeader             *ResponseHeader               `json:"responseHeader,omitempty"`
 	//RedirectExceptions         *RedirectExceptions           `json:"redirectExceptions,omitempty"`
 	//RedirectMappings           []*RedirectMappings           `json:"redirectMappings,omitempty"`
 }
