@@ -83,7 +83,7 @@ type OriginPullPolicy struct {
 
 // GzipOriginPull ...
 type GzipOriginPull struct {
-	Enabled bool `json:"enabled"`
+	Enabled bool `json:"enabled" tf:"enabled"`
 }
 
 /**********************
@@ -138,15 +138,17 @@ type ClientRequestModification struct {
 Delivery Fields
 */
 
-// Compression GZIP mime configuration
+// Compression configures compression level, file extensions, and mimetypes
+// found in the delivery tab under Content Compression
 type Compression struct {
 	Enabled bool   `json:"enabled,omitempty" tf:"enabled"`
-	GZIP    string `json:"gzip,omitempty" tf:"gzip"`
+	GZIP    string `json:"gzip,omitempty" tf:"gzip"` // comma-delimited
 	Level   *int   `json:"level,string,omitempty" tf:"level"`
-	Mime    string `json:"mime,omitempty" tf:"mime"`
+	Mime    string `json:"mime,omitempty" tf:"mime"` // comma-delimited
 }
 
-// StaticHeader Headers to arbitrarily add
+// StaticHeader Insert custom HTTP headers into requests and responses to and from the CDN
+// found in the delivery tab under Request & Response headers. You may prefer req/resp modifications
 type StaticHeader struct {
 	Enabled                  bool   `json:"enabled,omitempty" tf:"enabled"`
 	HTTP                     string `json:"http,omitempty" tf:"http"`
@@ -166,12 +168,12 @@ type HTTPMethods struct {
 
 // CustomMimeType ordered []CustomMimeType
 type CustomMimeType struct {
-	Enabled      bool   `json:"enabled,omitempty"`
-	Code         string `json:"code,omitempty"`         // comma delimited
-	ExtensionMap string `json:"extensionMap,omitempty"` // comma delimited
-	MethodFilter string `json:"methodFilter,omitempty"` // comma delimited
-	PathFilter   string `json:"pathFilter,omitempty"`   // comma delimited
-	HeaderFilter string `json:"headerFilter,omitempty"` // comma delimited
+	Enabled      bool   `json:"enabled,omitempty" tf:"enabled"`
+	Code         string `json:"code,omitempty" tf:"code"`                  // comma delimited
+	ExtensionMap string `json:"extensionMap,omitempty" tf:"extension_map"` // comma delimited
+	MethodFilter string `json:"methodFilter,omitempty" tf:"method_filter"` // comma delimited
+	PathFilter   string `json:"pathFilter,omitempty" tf:"path_filter"`     // comma delimited
+	HeaderFilter string `json:"headerFilter,omitempty" tf:"header_filter"` // comma delimited
 }
 
 // ContentDispositionByHeader ordered []ContentDispositionByHeader Controls the Content-Disposition header on the
@@ -190,18 +192,18 @@ type ContentDispositionByHeader struct {
 
 // BandwidthLimit ...
 type BandwidthLimit struct {
-	Enabled bool   `json:"enabled,omitempty"`
-	Rule    string `json:"rule,omitempty"`   // | delimited
-	Values  string `json:"values,omitempty"` // ex. 1mbps
+	Enabled bool   `json:"enabled,omitempty" tf:"enabled"`
+	Rule    string `json:"rule,omitempty" tf:"rule"`     // | delimited
+	Values  string `json:"values,omitempty" tf:"values"` // ex. 1mbps
 }
 
 // BandwidthRateLimit ...
 type BandwidthRateLimit struct {
-	Enabled            bool   `json:"enabled,omitempty"`
-	InitialBurstName   string `json:"initialBurstName,omitempty"`   // ex. ri=
-	SustainedRateName  string `json:"sustainedRateName,omitempty"`  // ex. rs=
-	InitialBurstUnits  string `json:"initialBurstUnits,omitempty"`  // ex. byte
-	SustainedRateUnits string `json:"sustainedRateUnits,omitempty"` // ex. kilobit
+	Enabled            bool   `json:"enabled,omitempty" tf:"enabled"`
+	InitialBurstName   string `json:"initialBurstName,omitempty" tf:"initial_burst_name"`     // ex. ri=
+	SustainedRateName  string `json:"sustainedRateName,omitempty" tf:"sustained_rate_name"`   // ex. rs=
+	InitialBurstUnits  string `json:"initialBurstUnits,omitempty" tf:"initial_burst_units"`   // ex. byte
+	SustainedRateUnits string `json:"sustainedRateUnits,omitempty" tf:"sustained_rate_units"` // ex. kilobit
 }
 
 // DynamicCacheRule ordered []DynamicCacheRule

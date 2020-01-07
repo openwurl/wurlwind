@@ -13,11 +13,7 @@ import (
 
 /*
 	Missing:
-		Delivery:
-			Compression
-			StaticHeader
-			HTTPMethods
-			GzipOriginPull
+
 
 		Cache:
 			CacheKeyModification
@@ -30,6 +26,7 @@ import (
 			OriginPullLogs
 			AccessLogs
 		Origin:
+			GzipOriginPull
 			OriginPullProtocol
 			FileSegmentation
 			OriginPersistentConnections
@@ -66,22 +63,25 @@ import (
 // Configuration defines a high level scope configuration for a delivery hash
 type Configuration struct {
 	Response
-	*Scope                     `json:"scope,omitempty"`
-	Hostname                   []*ScopeHostname              `json:"hostname,omitempty"`
-	OriginPullHost             *OriginPullHost               `json:"originPullHost,omitempty"`
-	OriginPullCacheExtension   *OriginPullCacheExtension     `json:"originPullCacheExtension,omitempty"`
-	OriginPullPolicy           []*OriginPullPolicy           `json:"originPullPolicy,omitempty"`
+	*Scope                   `json:"scope,omitempty"`
+	Hostname                 []*ScopeHostname          `json:"hostname,omitempty"`
+	OriginPullCacheExtension *OriginPullCacheExtension `json:"originPullCacheExtension,omitempty"`
+	OriginPullPolicy         []*OriginPullPolicy       `json:"originPullPolicy,omitempty"`
+	// Origin
+	OriginPullHost *OriginPullHost `json:"originPullHost,omitempty" name:"origin_pull_host" parent:"origin"`
+	// Delivery
 	OriginRequestModification  []*OriginRequestModification  `json:"originRequestModification,omitempty"`
 	OriginResponseModification []*OriginResponseModification `json:"originResponseModification,omitempty"`
 	ClientRequestModification  []*ClientRequestModification  `json:"clientRequestModification,omitempty"`
 	ClientResponseModification []*ClientResponseModification `json:"clientResponseModification,omitempty"`
-	Compression                *Compression                  `json:"compression,omitempty"`
-	StaticHeader               []*StaticHeader               `json:"staticHeader,omitempty"`
-	HTTPMethods                *HTTPMethods                  `json:"httpMethods,omitempty"`
-	ResponseHeader             *ResponseHeader               `json:"responseHeader,omitempty"`
+	Compression                *Compression                  `json:"compression,omitempty" name:"compression" parent:"delivery"`
+	StaticHeader               []*StaticHeader               `json:"staticHeader,omitempty" name:"static_header" parent:"delivery" modify:"weighted"`
+	HTTPMethods                *HTTPMethods                  `json:"httpMethods,omitempty" name:"http_methods" parent:"delivery"`
+	ResponseHeader             *ResponseHeader               `json:"responseHeader,omitempty" name:"response_header" parent:"delivery"`
+	GzipOriginPull             *GzipOriginPull               `json:"gzipOriginPull"`
 	//CustomMimeType             []*CustomMimeType             `json:"customMimeType,omitempty"`
-	//BandwidthLimit             *BandwidthLimit               `json:"bandWidthLimit,omitempty"`
-	//BandwidthRateLimit         *BandwidthRateLimit           `json:"bandwidthRateLimit,omitempty"`
+	BandwidthLimit     *BandwidthLimit     `json:"bandWidthLimit,omitempty" name:"bandwidth_rate_limiting" parent:"delivery"`
+	BandwidthRateLimit *BandwidthRateLimit `json:"bandwidthRateLimit,omitempty" name:"pattern_based_rate_limiting" parent:"delivery"`
 	//ContentDispositionByHeader []*ContentDispositionByHeader `json:"contentDispositionByHeader,omitempty"`
 	//DynamicCacheRule           []*DynamicCacheRule           `json:"dynamicCacheRule,omitempty"`
 	//FLVPseudoStreaming         *FLVPseudoStreaming           `json:"flvPseudoStreaming,omitempty"`
