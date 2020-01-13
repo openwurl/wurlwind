@@ -1,12 +1,6 @@
 package models
 
-import (
-	"reflect"
-	"testing"
-
-	"github.com/davecgh/go-spew/spew"
-)
-
+/*
 func TestMapFromStruct(t *testing.T) {
 	var mfsTests = []struct {
 		in  interface{}
@@ -202,3 +196,4 @@ func TestStructFromMap(t *testing.T) {
 func createIntPointer(x int) *int {
 	return &x
 }
+*/
