@@ -44,11 +44,11 @@ func (c *Configuration) ExtractSchema() map[string]interface{} {
 		if parent, pok := r.Tag.Lookup(parentTag); pok {
 			// check that it is named
 			if name, nok := r.Tag.Lookup(nameTag); nok {
-				debug.Log("=========== %v.%v\n", parent, name)
-				debug.Log("%v.%v - processing...\n", parent, name)
+				debug.Log("ExtractSchema", "=========== %v.%v\n", parent, name)
+				debug.Log("ExtractSchema", "%v.%v - processing...\n", parent, name)
 
 				if !r.Valid() {
-					debug.Log("%v.%v - Invalid or empty, skipping...\n", parent, name)
+					debug.Log("ExtractSchema", "%v.%v - Invalid or empty, skipping...\n", parent, name)
 					continue
 				}
 
@@ -56,7 +56,7 @@ func (c *Configuration) ExtractSchema() map[string]interface{} {
 
 				switch r.Field.Kind() {
 				case reflect.Slice:
-					debug.Log("%v.%v - slice\n", parent, name)
+					debug.Log("ExtractSchema", "%v.%v - slice\n", parent, name)
 					if mod, mok := r.Tag.Lookup(modTag); mok {
 						if mod == weightedValue {
 							debug.Log("%v.%v - modifier = %v\n", parent, name, mod)
@@ -66,14 +66,14 @@ func (c *Configuration) ExtractSchema() map[string]interface{} {
 							continue
 						}
 					}
-					debug.Log("%v.%v - slice untagged, skipping...\n", parent, name)
+					debug.Log("ExtractSchema", "%v.%v - slice untagged, skipping...\n", parent, name)
 				case reflect.Ptr:
-					debug.Log("%v.%v - pointer\n", parent, name)
+					debug.Log("ExtractSchema", "%v.%v - pointer\n", parent, name)
 					thisParent := p.Get(parent)
 					f := thisParent.Add(name)
 					f.Content = MapFromReflectValue(r.Field.Elem())
 				default:
-					debug.Log("%v.%v - Ended up in broken default state, skipping...\n", parent, name)
+					debug.Log("ExtractSchema", "%v.%v - Ended up in broken default state, skipping...\n", parent, name)
 					continue
 				}
 
@@ -231,7 +231,12 @@ func StructFromValue(model *reflect.Value, m map[string]interface{}) *reflect.Va
 						thisFieldDeref.SetBool(v.(bool))
 					}
 				default:
-					debug.Log("Something went wrong packing: %v\n", fmt.Sprintf("%v", m))
+					if m == nil {
+						debug.Log("StructFromValue", "Something went wrong, m is nil: %v", spew.Sprintf("%v", thisFieldDeref.Kind()))
+					} else {
+						debug.Log("StructFromValue", "Something went wrong packing: %v\n", fmt.Sprintf("%v", m))
+					}
+
 					return nil
 				}
 
@@ -278,24 +283,39 @@ func StructFromMap(model interface{}, m map[string]interface{}) interface{} {
 
 			if name, ok := r.Tag.Lookup(terraformTag); ok {
 				if !r.Field.CanAddr() {
-					debug.Log("%v is not valid??\n", name)
+					debug.Log("StructFromMap", "%v is not valid??\n", name)
 					continue
 				}
 
 				debug.Log("REFLECTION ITERATION", "[%d] %s (%s)", i, name, r.Type.Type.String())
 
+				// dereference field
+				var thisFieldDeref reflect.Value
+				if r.Field.Kind() == reflect.Ptr {
+					debug.Log("StructFromMap", "Dereferencing: %v [%v]", name, r.Type.Type.String())
+					r.Field.Set(reflect.New(r.Field.Type().Elem()))
+					thisFieldDeref = r.Field.Elem()
+				} else {
+					thisFieldDeref = r.Field
+				}
+
+				debug.Log("StructFromMap", "Dereferenced: %v: %v => %v", name, r.Type.Type.String(), spew.Sprintf("%v", thisFieldDeref.Type().String()))
+
 				for k, v := range m {
 					if k == name {
 
-						switch r.Field.Kind() {
+						switch thisFieldDeref.Kind() {
 						case reflect.Int:
-							r.Field.SetInt(int64(v.(int)))
+							//r.Field.SetInt(int64(v.(int)))
+							thisFieldDeref.SetInt(int64(v.(int)))
 						case reflect.String:
-							r.Field.SetString(v.(string))
+							//r.Field.SetString(v.(string))
+							thisFieldDeref.SetString(v.(string))
 						case reflect.Bool:
-							r.Field.SetBool(v.(bool))
+							//r.Field.SetBool(v.(bool))
+							thisFieldDeref.SetBool(v.(bool))
 						default:
-							debug.Log("Something went wrong packing: %v\n", fmt.Sprintf("%v", m))
+							debug.Log("StructFromMap", "Something went wrong packing: %v - %v [%v]\n", name, fmt.Sprintf("%v", v), thisFieldDeref.Type().String())
 							return nil
 						}
 
@@ -376,7 +396,7 @@ func StructFromMapOld(model interface{}, m map[string]interface{}) interface{} {
 						thisFieldDeref.SetBool(v.(bool))
 					}
 				default:
-					fmt.Printf("Something went wrong packing: %v\n", m)
+					debug.Log("StructFromMap", "Something went wrong packing: %v\n", m)
 					return nil
 				}
 			}
