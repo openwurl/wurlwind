@@ -24,7 +24,7 @@ type Origin struct {
 	Response
 	// Required
 	Name     string `json:"name" validate:"required"`
-	Hostname string `json:"hostname" validate:"required,domain"`
+	Hostname string `json:"hostname" validate:"required,hostname"`
 	Port     int    `json:"port" validate:"required,oneof=80 443 8080 1935"` // supports 80, 443, 8080, 1935
 
 	// Optional
