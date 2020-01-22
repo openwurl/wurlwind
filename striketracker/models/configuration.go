@@ -80,8 +80,8 @@ type Configuration struct {
 	ResponseHeader             *ResponseHeader               `json:"responseHeader,omitempty" name:"response_header" parent:"delivery"`
 	GzipOriginPull             *GzipOriginPull               `json:"gzipOriginPull"`
 	//CustomMimeType             []*CustomMimeType             `json:"customMimeType,omitempty"`
-	BandwidthLimit     *BandwidthLimit     `json:"bandWidthLimit,omitempty" name:"bandwidth_rate_limiting" parent:"delivery"`
-	BandwidthRateLimit *BandwidthRateLimit `json:"bandwidthRateLimit,omitempty" name:"pattern_based_rate_limiting" parent:"delivery"`
+	BandwidthLimit     *BandwidthLimit     `json:"bandWidthLimit,omitempty" name:"pattern_based_rate_limiting" parent:"delivery"`
+	BandwidthRateLimit *BandwidthRateLimit `json:"bandwidthRateLimit,omitempty" name:"bandwidth_rate_limiting" parent:"delivery"`
 	//ContentDispositionByHeader []*ContentDispositionByHeader `json:"contentDispositionByHeader,omitempty"`
 	//DynamicCacheRule           []*DynamicCacheRule           `json:"dynamicCacheRule,omitempty"`
 	//FLVPseudoStreaming         *FLVPseudoStreaming           `json:"flvPseudoStreaming,omitempty"`

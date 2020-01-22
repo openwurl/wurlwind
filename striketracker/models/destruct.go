@@ -59,7 +59,7 @@ func (c *Configuration) ExtractSchema() map[string]interface{} {
 					debug.Log("ExtractSchema", "%v.%v - slice\n", parent, name)
 					if mod, mok := r.Tag.Lookup(modTag); mok {
 						if mod == weightedValue {
-							debug.Log("%v.%v - modifier = %v\n", parent, name, mod)
+							debug.Log("Modifiers", "%v.%v - modifier = %v\n", parent, name, mod)
 							thisParent := p.Get(parent)
 							f := thisParent.Add(name)
 							f.Content = UnpackWeightedReflectedSlice(r.Field)
@@ -70,6 +70,7 @@ func (c *Configuration) ExtractSchema() map[string]interface{} {
 				case reflect.Ptr:
 					debug.Log("ExtractSchema", "%v.%v - pointer\n", parent, name)
 					thisParent := p.Get(parent)
+					debug.Log("Parent adding", "name: %s | parent: %v\n", name, spew.Sprintf("%v", thisParent))
 					f := thisParent.Add(name)
 					f.Content = MapFromReflectValue(r.Field.Elem())
 				default:
